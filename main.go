@@ -4,10 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"greaterAltitudeapp/config"
 	"greaterAltitudeapp/routes"
-	"greaterAltitudeapp/utils"
 )
-
-var H *utils.DBHandler
 
 func init() {
 	config.InitDB()

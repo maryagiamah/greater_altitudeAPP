@@ -1,0 +1,5 @@
+CREATE DATABASE GA_db;
+CREATE USER GA_dev WITH PASSWORD 'GA_dev_pwd';
+GRANT ALL PRIVILEGES ON DATABASE GA_db TO GA_dev;
+GRANT USAGE ON SCHEMA performance_schema TO GA_dev;  -- If applicable
+

@@ -9,27 +9,44 @@ func RegisterRoutes(r *gin.Engine) {
 	pupilController := &controllers.PupilController{}
 	parentController := &controllers.ParentController{}
 	staffController := &controllers.StaffController{}
+	programController := &controllers.ProgramController{}
+	enrollmentController := &controllers.EnrollmentController{}
+	classController := &controllers.ClassController{}
 
 	v1 := r.Group("api/v1")
 	{
 		v1.GET("/staff/:id", staffController.FetchStaff)
 		v1.GET("/parent/:id", parentController.FetchParent)
 		v1.GET("/pupil/:id", pupilController.FetchPupil)
+		v1.GET("/program/:id", programController.FetchProgram)
+		v1.GET("/class/:id", classController.FetchClass)
+		v1.GET("/enrollment/:id", enrollmentController.FetchEnrollment)
 
+		v1.POST("/program/", programController.CreateProgram)
+		v1.POST("/class/", classController.CreateClass)
+		v1.POST("/enrollment/", enrollmentController.CreateEnrollment)
 		v1.POST("/staff", staffController.CreateStaff)
 		v1.POST("/parent", parentController.CreateParent)
 		v1.POST("/pupil", pupilController.CreatePupil)
 
+		v1.PUT("/program/:id", programController.UpdateProgram)
+		v1.PUT("/class/:id", classController.UpdateClass)
+		v1.PUT("/enrollment/:id", enrollmentController.UpdateEnrollment)
 		v1.PUT("/staff/:id", staffController.UpdateStaff)
 		v1.PUT("/parent/:id", parentController.UpdateParent)
 		v1.PUT("/pupil/:id", pupilController.UpdatePupil)
 
+		v1.DELETE("/program/:id", programController.DeleteProgram)
+		v1.DELETE("/enrollment/:id", enrollmentController.DeleteEnrollment)
+		v1.DELETE("/class/:id", classController.DeleteClass)
 		v1.DELETE("/staff/:id", staffController.DeleteStaff)
 		v1.DELETE("/parent/:id", parentController.DeleteParent)
 		v1.DELETE("/pupil/:id", pupilController.DeletePupil)
 	}
 
-/*	auth := r.Group("auth")
-	{
-	} */
+	/*
+	   auth := r.Group("auth")
+	   {
+	   }
+	*/
 }

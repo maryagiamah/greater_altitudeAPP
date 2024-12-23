@@ -22,6 +22,20 @@ func InitDB() {
 
 	log.Println("Database handler Initialized successfully")
 
+	if err := H.DB.Migrator().DropTable(
+		&models.User{},
+		&models.Parent{},
+		&models.Program{},
+		&models.Class{},
+		&models.Pupil{},
+		&models.Enrollment{},
+		&models.News{},
+		&models.Event{},
+		&models.Staff{},
+	); err != nil {
+		log.Fatal("Failed to drop tables: ", err)
+	}
+
 	if err := H.DB.AutoMigrate(
 		&models.User{},
 		&models.Parent{},
@@ -37,4 +51,16 @@ func InitDB() {
 	}
 
 	H.Logger.Println("Database migration completed successfully")
+}
+
+func CloseDB() {
+	sqlDB, err := H.DB.DB()
+
+	if err != nil {
+		log.Fatal("Failed to get database: ", err)
+	}
+
+	if err := sqlDB.Close(); err != nil {
+		log.Fatal("Failed to close database: ", err)
+	}
 }

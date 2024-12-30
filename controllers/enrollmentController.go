@@ -27,7 +27,7 @@ func (e *EnrollmentController) FetchEnrollment(c *gin.Context) {
 		return
 	}
 	config.H.Logger.Printf("Fetched Enrollment: %s %s", enroll.StudentID)
-	c.JSON(200, gin.H{"pupil": enroll})
+	c.JSON(200, gin.H{"Enrollment": enroll})
 }
 
 func (e *EnrollmentController) CreateEnrollment(c *gin.Context) {

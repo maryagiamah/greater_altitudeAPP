@@ -22,9 +22,9 @@ func RegisterRoutes(r *gin.Engine) {
 		v1.GET("/class/:id", classController.FetchClass)
 		v1.GET("/enrollment/:id", enrollmentController.FetchEnrollment)
 
-		v1.POST("/program/", programController.CreateProgram)
-		v1.POST("/class/", classController.CreateClass)
-		v1.POST("/enrollment/", enrollmentController.CreateEnrollment)
+		v1.POST("/program", programController.CreateProgram)
+		v1.POST("/class", classController.CreateClass)
+		v1.POST("/enrollment", enrollmentController.CreateEnrollment)
 		v1.POST("/staff", staffController.CreateStaff)
 		v1.POST("/parent", parentController.CreateParent)
 		v1.POST("/pupil", pupilController.CreatePupil)

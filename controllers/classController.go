@@ -76,7 +76,6 @@ func (cl *ClassController) UpdateClass(c *gin.Context) {
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update class"})
-		config.H.Logger.Printf("Update failed: %v", result.Error)
 		return
 	}
 

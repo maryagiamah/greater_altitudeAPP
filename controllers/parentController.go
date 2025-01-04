@@ -18,7 +18,7 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 		return
 	}
 
-	if err := config.H.DB.First(&parent, id).Error; err != nil {
+	if err := config.H.DB.Preload("User").First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
 		} else {
@@ -26,7 +26,7 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 		}
 		return
 	}
-	config.H.Logger.Printf("Fetched Parent: %s %s", parent.FirstName, parent.LastName)
+	config.H.Logger.Printf("Fetched Parent: %s %s", parent.User.FirstName, parent.User.LastName)
 	c.JSON(200, gin.H{"parent": parent})
 
 }

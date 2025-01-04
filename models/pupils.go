@@ -13,6 +13,6 @@ type Pupil struct {
 	Age         uint      `json:"age"`
 	ClassID     uint      `gorm:"not null" json:"classId"`
 	ParentID    uint      `gorm:"not null" json:"parentId"`
-	Allergies   string  `gorm:"size:256" json:"allergies"`
-	MedicalInfo *string `gorm:"type:text" json:"medInfo,omitempty"`
+	Allergies   string    `gorm:"size:256" json:"allergies"`
+	MedicalInfo *string   `gorm:"type:text" json:"medInfo,omitempty"`
 }

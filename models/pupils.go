@@ -6,9 +6,7 @@ import (
 )
 
 type Pupil struct {
-	gorm.Model
-	FirstName   string    `gorm:"size:256;not null" json:"firstname"`
-	LastName    string    `gorm:"size:256;not null" json:"lastname"`
+	BaseModel
 	DOB         time.Time `gorm:"not null" json:"dob"`
 	Age         uint      `json:"age"`
 	ClassID     uint      `gorm:"not null" json:"classId"`

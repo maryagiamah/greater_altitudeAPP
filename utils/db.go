@@ -2,15 +2,15 @@ package utils
 
 import (
 	"fmt"
-	"os"
 	"log"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type DBHandler struct {
-	DB *gorm.DB
+	DB     *gorm.DB
 	Logger *log.Logger
 }
 
@@ -26,7 +26,6 @@ func CreateDBHandler() (*DBHandler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Can't connect to database: %w", err)
 	}
-
 
 	logger := createNewLogger()
 	return &DBHandler{DB: db, Logger: logger}, nil

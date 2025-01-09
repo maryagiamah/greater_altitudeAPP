@@ -26,7 +26,7 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 		}
 		return
 	}
-	config.H.Logger.Printf("Fetched Parent: %s %s", parent.User.FirstName, parent.User.LastName)
+	config.H.Logger.Printf("Fetched Parent: %s %s", parent.FirstName, parent.LastName)
 	c.JSON(200, gin.H{"parent": parent})
 
 }

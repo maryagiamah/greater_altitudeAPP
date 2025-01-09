@@ -13,7 +13,7 @@ func RegisterRoutes(r *gin.Engine) {
 	enrollmentController := &controllers.EnrollmentController{}
 	classController := &controllers.ClassController{}
 
-	v1 := r.Group("api/v1")
+	v1 := r.Group("api/v1", middleware.AuthMiddleware())
 	{
 		v1.GET("/staff/:id", staffController.FetchStaff)
 		v1.GET("/parent/:id", parentController.FetchParent)
@@ -22,12 +22,12 @@ func RegisterRoutes(r *gin.Engine) {
 		v1.GET("/class/:id", classController.FetchClass)
 		v1.GET("/enrollment/:id", enrollmentController.FetchEnrollment)
 
-		v1.POST("/program", programController.CreateProgram)
-		v1.POST("/class", classController.CreateClass)
-		v1.POST("/enrollment", enrollmentController.CreateEnrollment)
-		v1.POST("/staff", staffController.CreateStaff)
-		v1.POST("/parent", parentController.CreateParent)
-		v1.POST("/pupil", pupilController.CreatePupil)
+		v1.POST("/program", middleware.RoleMiddleware("admin"), programController.CreateProgram)
+		v1.POST("/class", middleware.RoleMiddleware("admin"), classController.CreateClass)
+		v1.POST("/enrollment", middleware.RoleMiddleware("admin"), enrollmentController.CreateEnrollment)
+		v1.POST("/staff", middleware.RoleMiddleware("admin"), staffController.CreateStaff)
+		v1.POST("/parent", middleware.RoleMiddleware("admin"), parentController.CreateParent)
+		v1.POST("/pupil", middleware.RoleMiddleware("admin"), pupilController.CreatePupil)
 
 		v1.PUT("/program/:id", programController.UpdateProgram)
 		v1.PUT("/class/:id", classController.UpdateClass)

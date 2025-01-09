@@ -26,7 +26,7 @@ func (s *StaffController) FetchStaff(c *gin.Context) {
 		}
 		return
 	}
-	config.H.Logger.Printf("Fetched Staff: %s %s", staff.User.FirstName, staff.User.LastName)
+	config.H.Logger.Printf("Fetched Staff: %s %s", staff.FirstName, staff.LastName)
 	c.JSON(200, gin.H{"staff": staff})
 }
 

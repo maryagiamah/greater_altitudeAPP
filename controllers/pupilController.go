@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/config"
 	"greaterAltitudeapp/models"
+	"log"
 )
 
 type PupilController struct{}
@@ -34,6 +35,7 @@ func (p *PupilController) CreatePupil(c *gin.Context) {
 	var newPupil models.Pupil
 
 	if err := c.ShouldBindJSON(&newPupil); err != nil {
+		log.Print(err)
 		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
 		return
 	}

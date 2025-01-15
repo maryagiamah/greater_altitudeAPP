@@ -16,4 +16,4 @@ type User struct {
 	Password string `gorm:"size:256;not null" json:"-"`
 	Role     string `gorm:"size:25;not null" json:"role"`
 	Mobile   string `gorm:"size:15;not null" json:"mobile"`
-}i
+}

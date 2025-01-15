@@ -33,10 +33,16 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 
 func (p *ParentController) CreateParent(c *gin.Context) {
 	var newParent models.Parent
+	var user models.User
 
 	if err := c.ShouldBindJSON(&newParent); err != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
 		return
+	}
+
+	if err := config.H.DB.First(&user, newParent.UserID).Error; err != nil {
+		 c.AbortWithStatusJSON(400, gin.H{"error": "User row not found"})
+		 return
 	}
 
 	result := config.H.DB.Create(&newParent)

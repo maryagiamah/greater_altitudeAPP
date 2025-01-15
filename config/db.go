@@ -5,6 +5,7 @@ import (
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
 	"log"
+	"os"
 )
 
 var H *utils.DBHandler
@@ -50,6 +51,20 @@ func InitDB() {
 		H.Logger.Fatal("Failed to migrate tables: ", err)
 	}
 
+	hashedPassword, err := utils.HashPassword(os.Getenv("ADMIN_PWD"))
+	if err != nil {
+		log.Fatalf("Error hashing password: %v", err)
+	}
+	adminUser := models.User{
+		Email:    os.Getenv("ADMIN_EMAIL"),
+		Password: hashedPassword,
+		Role:     "admin",
+		Mobile:   os.Getenv("ADMIN_MOBILE"),
+	}
+
+	if err := H.DB.Create(&adminUser).Error; err != nil {
+		log.Fatal("Failed to create admin user: ", err)
+	}
 	H.Logger.Println("Database migration completed successfully")
 }
 

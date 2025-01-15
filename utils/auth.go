@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var jwtSecret = os.Getenv("SECRET_KEY")
+var jwtSecret = []byte(os.Getenv("SECRET_KEY"))
 
 func GenerateJWT(userID uint, role string) (string, error) {
 	claims := jwt.MapClaims{

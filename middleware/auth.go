@@ -1,11 +1,14 @@
 package middleware
 
 import (
-    "net/http"
-    "strings"
+	"net/http"
+	"strings"
 
-    "github.com/gin-gonic/gin"
-    "greaterAltitudeapp/utils"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"greaterAltitudeapp/config"
+	"greaterAltitudeapp/models"
+	"greaterAltitudeapp/utils"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -30,15 +33,43 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func RoleMiddleware(allowedRoles ...string) gin.HandlerFunc {
-    return func(c *gin.Context) {
-        role := c.GetString("role")
-        for _, allowedRole := range allowedRoles {
-            if role == allowedRole {
-                c.Next()
-                return
-            }
-        }
-        c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-    }
+func HasPermission(role, allowedPerms ...string) bool {
+	var checkRole models.Role
+
+	if err := config.H.DB.Where("name = ?", role).Preload("Permissions").First(&checkRole).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			config.H.Logger.Fatal("Role hasn't been created")
+		}
+		return false
+	}
+
+	if len(permissionNames) == 0 {
+		config.H.Logger.Print(err)
+		config.H.Logger.Fatal("Role has no permissions")
+		return false
+	}
+
+	var permissionNames []string
+	for i, perm := range checkRole.Permissions {
+		permissionNames[i] = perm.Name
+	}
+
+	for _, perm := range allowedPerms {
+		if !slices.Contains(permissionNames, perm) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func RoleMiddleware(allowedPerms ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role := c.GetString("role")
+		if HasPermission(role, allowedPerms) {
+			c.Next()
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+	}
 }

@@ -11,9 +11,9 @@ type BaseModel struct {
 }
 
 type User struct {
-	gorm.Model
-	Email    string `gorm:"size:256;unique; not null" json:"email"`
-	Password string `gorm:"size:256;not null" json:"-"`
+	BaseModel
+	Email    string `gorm:"size:256;unique;not null" json:"email"`
+	Password string `gorm:"size:256;unique;not null" json:"-"`
 	Role     string `gorm:"size:25;not null" json:"role"`
 	Mobile   string `gorm:"size:15;not null" json:"mobile"`
 }

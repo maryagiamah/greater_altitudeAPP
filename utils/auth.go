@@ -13,7 +13,7 @@ func GenerateJWT(userID uint, role string) (string, error) {
 	claims := jwt.MapClaims{
 		"userId": userID,
 		"role":    role,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"exp":     time.Now().Add(1 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
@@ -28,6 +28,7 @@ func ValidateJWT(tokenString string) (*jwt.MapClaims, error) {
 	if err != nil || !token.Valid {
 		return nil, err
 	}
+
 	return &claims, nil
 }
 
@@ -37,4 +38,18 @@ func HashPassword(password string) (string, error) {
         return "", err
     }
     return string(hashed), nil
+}
+
+func InvalidateJWT(tokenString string) error {
+
+	claims := jwt.MapClaims{}
+        token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+                return jwtSecret, nil
+        })
+        if err != nil || !token.Valid {
+                return nil, err
+        }
+
+	exp_time := claims["exp"]
+	return rdb.Set(claims["jti"], true, claims["exp"]).Err()
 }

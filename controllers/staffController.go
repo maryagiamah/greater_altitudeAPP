@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"greaterAltitudeapp/config"
 	"greaterAltitudeapp/models"
+	"greaterAltitudeapp/utils"
 )
 
 type StaffController struct{}
@@ -18,7 +18,7 @@ func (s *StaffController) FetchStaff(c *gin.Context) {
 		return
 	}
 
-	if err := config.H.DB.First(&staff, id).Error; err != nil {
+	if err := utils.H.DB.First(&staff, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(404, gin.H{"error": "Staff not found"})
 		} else {
@@ -26,7 +26,7 @@ func (s *StaffController) FetchStaff(c *gin.Context) {
 		}
 		return
 	}
-	config.H.Logger.Printf("Fetched Staff: %s %s", staff.FirstName, staff.LastName)
+	utils.H.Logger.Printf("Fetched Staff: %s %s", staff.User.FirstName, staff.User.LastName)
 	c.JSON(200, gin.H{"staff": staff})
 }
 
@@ -38,14 +38,14 @@ func (s *StaffController) CreateStaff(c *gin.Context) {
 		return
 	}
 
-	result := config.H.DB.Create(&newStaff)
+	result := utils.H.DB.Create(&newStaff)
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Staff"})
 		return
 	}
 
-	config.H.Logger.Printf("New staff Created with ID: %d", newStaff.ID)
+	utils.H.Logger.Printf("New staff Created with ID: %d", newStaff.ID)
 	c.JSON(201, gin.H{"ID": newStaff.ID})
 }
 
@@ -64,7 +64,7 @@ func (s *StaffController) UpdateStaff(c *gin.Context) {
 		return
 	}
 
-	if err := config.H.DB.First(&staff, id).Error; err != nil {
+	if err := utils.H.DB.First(&staff, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(404, gin.H{"error": "Staff not found"})
 		} else {
@@ -72,15 +72,15 @@ func (s *StaffController) UpdateStaff(c *gin.Context) {
 		}
 		return
 	}
-	result := config.H.DB.Model(&staff).Updates(updatedFields)
+	result := utils.H.DB.Model(&staff).Updates(updatedFields)
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update staff"})
-		config.H.Logger.Printf("Update failed: %v", result.Error)
+		utils.H.Logger.Printf("Update failed: %v", result.Error)
 		return
 	}
 
-	config.H.Logger.Printf("Updated staff with ID: %d", staff.ID)
+	utils.H.Logger.Printf("Updated staff with ID: %d", staff.ID)
 	c.JSON(200, gin.H{"ID": staff.ID})
 }
 
@@ -93,7 +93,7 @@ func (s *StaffController) DeleteStaff(c *gin.Context) {
 		return
 	}
 
-	result := config.H.DB.Delete(&staff, id)
+	result := utils.H.DB.Delete(&staff, id)
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
@@ -104,6 +104,6 @@ func (s *StaffController) DeleteStaff(c *gin.Context) {
 		c.AbortWithStatusJSON(404, gin.H{"error": "Staff not found"})
 		return
 	}
-	config.H.Logger.Printf("Deleted Staff with ID: %s", id)
+	utils.H.Logger.Printf("Deleted Staff with ID: %s", id)
 	c.JSON(200, gin.H{"message": "Staff deleted successfully"})
 }

@@ -7,52 +7,52 @@ import (
 	"greaterAltitudeapp/utils"
 )
 
-type ProgramController struct{}
+type RoleController struct{}
 
-func (p *ProgramController) FetchProgram(c *gin.Context) {
+func (r *RoleController) GetRole(sc *gin.Context) {
 	id := c.Param("id")
-	var program models.Program
+	var role models.Role
 
 	if id == "" {
 		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
-	if err := utils.H.DB.First(&program, id).Error; err != nil {
+	if err := utils.H.DB.First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
 		} else {
 			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Program: %s %s", program.Name)
-	c.JSON(200, gin.H{"program": program})
+	utils.H.Logger.Printf("Fetched Role: %s %s", role.Name)
+	c.JSON(200, gin.H{"role": role})
 }
 
-func (p *ProgramController) CreateProgram(c *gin.Context) {
-	var newProgram models.Program
+func (r *RoleController) CreateRole(c *gin.Context) {
+	var newRole models.Role
 
-	if err := c.ShouldBindJSON(&newProgram); err != nil {
+	if err := c.ShouldBindJSON(&newRole); err != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
 		return
 	}
 
-	result := utils.H.DB.Create(&newProgram)
+	result := utils.H.DB.Create(&newRole)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Program"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create role"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Pupil Created with ID: %d", newProgram.ID)
-	c.JSON(201, gin.H{"ID": newProgram.ID})
+	utils.H.Logger.Printf("New Role Created with ID: %d", newRole.ID)
+	c.JSON(201, gin.H{"ID": newRole.ID})
 }
 
-func (p *ProgramController) UpdateProgram(c *gin.Context) {
+func (r *RoleController) UpdateRole(c *gin.Context) {
 	id := c.Param("id")
-	var program models.Program
-	var updatedFields models.Program
+	var role models.Role
+	var updatedFields models.Role
 
 	if id == "" {
 		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
@@ -64,27 +64,27 @@ func (p *ProgramController) UpdateProgram(c *gin.Context) {
 		return
 	}
 
-	if err := utils.H.DB.First(&program, id).Error; err != nil {
+	if err := utils.H.DB.First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
 		} else {
 			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	result := utils.H.DB.Model(&program).Updates(updatedFields)
+	result := utils.H.DB.Model(&role).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update program"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update role"})
 		utils.H.Logger.Printf("Update failed: %v", result.Error)
 		return
 	}
 
-	utils.H.Logger.Printf("Updated program with ID: %d", program.ID)
-	c.JSON(200, gin.H{"ID": program.ID})
+	utils.H.Logger.Printf("Updated role with ID: %d", role.ID)
+	c.JSON(200, gin.H{"ID": role.ID})
 }
 
-func (p *ProgramController) DeleteProgram(c *gin.Context) {
+func (r *RoleController) DeleteRole(c *gin.Context) {
 	id := c.Param("id")
 	var program models.Program
 

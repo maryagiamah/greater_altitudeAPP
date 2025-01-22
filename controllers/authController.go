@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"greaterAltitudeapp/config"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
 	"log"
@@ -23,13 +22,18 @@ func (a *AuthController) Login(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := config.H.DB.Where("email = ?", login.Email).First(&user).Error; err != nil {
+	if err := utils.H.DB.Where("email = ?", login.Email).First(&user).Error; err != nil {
 		c.JSON(401, gin.H{"error": "Invalid Email"})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
 		c.JSON(401, gin.H{"error": "Invalid Password"})
+		return
+	}
+
+	if !user.IsActive {
+		c.AbortWithStatusJSON(403, gin.H{"error": "Account is not active"})
 		return
 	}
 
@@ -57,7 +61,7 @@ func (a *AuthController) SignUp(c *gin.Context) {
 	}
 	newUser.Password = hashedPassword
 
-	if err := config.H.DB.Create(&newUser).Error; err != nil {
+	if err := utils.H.DB.Create(&newUser).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to create user"})
 		return
 	}

@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"greaterAltitudeapp/config"
 	"greaterAltitudeapp/models"
+	"greaterAltitudeapp/utils"
 )
 
 type ParentController struct{}
@@ -18,7 +18,7 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 		return
 	}
 
-	if err := config.H.DB.Preload("User").First(&parent, id).Error; err != nil {
+	if err := utils.H.DB.Preload("User").First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
 		} else {
@@ -26,7 +26,7 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 		}
 		return
 	}
-	config.H.Logger.Printf("Fetched Parent: %s %s", parent.FirstName, parent.LastName)
+	utils.H.Logger.Printf("Fetched Parent: %s %s", parent.User.FirstName, parent.User.LastName)
 	c.JSON(200, gin.H{"parent": parent})
 
 }
@@ -40,19 +40,19 @@ func (p *ParentController) CreateParent(c *gin.Context) {
 		return
 	}
 
-	if err := config.H.DB.First(&user, newParent.UserID).Error; err != nil {
-		 c.AbortWithStatusJSON(400, gin.H{"error": "User row not found"})
-		 return
+	if err := utils.H.DB.First(&user, newParent.UserID).Error; err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": "User row not found"})
+		return
 	}
 
-	result := config.H.DB.Create(&newParent)
+	result := utils.H.DB.Create(&newParent)
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Parent"})
 		return
 	}
 
-	config.H.Logger.Printf("New Parent Created with ID: %d", newParent.ID)
+	utils.H.Logger.Printf("New Parent Created with ID: %d", newParent.ID)
 	c.JSON(201, gin.H{"ID": newParent.ID})
 
 }
@@ -72,7 +72,7 @@ func (p *ParentController) UpdateParent(c *gin.Context) {
 		return
 	}
 
-	if err := config.H.DB.First(&parent, id).Error; err != nil {
+	if err := utils.H.DB.First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
 		} else {
@@ -81,15 +81,15 @@ func (p *ParentController) UpdateParent(c *gin.Context) {
 		return
 	}
 
-	result := config.H.DB.Model(&parent).Updates(updatedFields)
+	result := utils.H.DB.Model(&parent).Updates(updatedFields)
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update parent"})
-		config.H.Logger.Printf("Update failed: %v", result.Error)
+		utils.H.Logger.Printf("Update failed: %v", result.Error)
 		return
 	}
 
-	config.H.Logger.Printf("Updated parent with ID: %d", parent.ID)
+	utils.H.Logger.Printf("Updated parent with ID: %d", parent.ID)
 	c.JSON(200, gin.H{"ID": parent.ID})
 }
 
@@ -102,7 +102,7 @@ func (p *ParentController) DeleteParent(c *gin.Context) {
 		return
 	}
 
-	result := config.H.DB.Delete(&parent, id)
+	result := utils.H.DB.Delete(&parent, id)
 
 	if result.Error != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
@@ -113,6 +113,6 @@ func (p *ParentController) DeleteParent(c *gin.Context) {
 		c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
 		return
 	}
-	config.H.Logger.Printf("Deleted Parent with ID: %s", id)
+	utils.H.Logger.Printf("Deleted Parent with ID: %s", id)
 	c.JSON(200, gin.H{"message": "Parent deleted successfully"})
 }

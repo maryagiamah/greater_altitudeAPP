@@ -7,19 +7,21 @@ import (
 )
 
 func ProgramServices(rg *gin.RouterGroup) {
+	programController := &controllers.ProgramController{}
+
 	program := rg.Group("/programs", middleware.AuthMiddleware())
 	{
-		program.POST("/", CreateProgram)
-		program.GET("/", GetAllPrograms)
-		program.GET("/:id", GetProgramDetails)
-		program.PUT("/:id", UpdateProgram)
-		program.DELETE("/:id", DeleteProgram)
+		program.POST("/", programController.CreateProgram)
+		program.GET("/", programController.GetAllPrograms)
+		program.GET("/:id", programController.GetProgram)
+		program.PUT("/:id", programController.UpdateProgram)
+		program.DELETE("/:id", programController.DeleteProgram)
 
-		program.GET("/:id/classes", GetProgramClasses)
-		program.GET("/:id/activities", GetProgramActivities)
-		program.POST("/:id/class", AddClassToProgram)
-		program.POST("/:id/activity", AddActivityToProgram)
-		program.DELETE("/activities/:id", DeleteActivity)
+		program.GET("/:id/classes", programController.GetProgramClasses)
+		program.GET("/:id/activities", programController.GetProgramActivities)
+		program.POST("/:id/class", programController.AddClassToProgram)
+		program.POST("/:id/activity",programController. AddActivityToProgram)
+		program.DELETE("/activities/:id", programController.DeleteActivity)
 	}
 
 }

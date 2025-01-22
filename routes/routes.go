@@ -1,8 +1,7 @@
 package routes
+
 import (
-        "github.com/gin-gonic/gin"
-        "greaterAltitudeapp/controllers"
-        "greaterAltitudeapp/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 func RegisterRoutes(r *gin.Engine) {

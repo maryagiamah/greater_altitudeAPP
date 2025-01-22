@@ -10,7 +10,7 @@ import (
 
 type PupilController struct{}
 
-func (p *PupilController) FetchPupil(c *gin.Context) {
+func (p *PupilController) GetPupil(c *gin.Context) {
 	id := c.Param("id")
 	var pupil models.Pupil
 
@@ -29,6 +29,9 @@ func (p *PupilController) FetchPupil(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Fetched Pupil: %s %s", pupil.FirstName, pupil.LastName)
 	c.JSON(200, gin.H{"pupil": pupil})
+}
+
+func (p *PupilController) GetAllPupils(c *gin.Context) {
 }
 
 func (p *PupilController) CreatePupil(c *gin.Context) {
@@ -108,4 +111,7 @@ func (p *PupilController) DeletePupil(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Deleted Pupil with ID: %s", id)
 	c.JSON(200, gin.H{"message": "Pupil deleted successfully"})
+}
+
+func (p *PupilController) GetAllClasses(c *gin.Context) {
 }

@@ -9,7 +9,7 @@ import (
 
 type UserController struct{}
 
-func (u *UserController) FetchUser(c *gin.Context) {
+func (u *UserController) GetUser(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
 
@@ -28,6 +28,21 @@ func (u *UserController) FetchUser(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Fetched User: %s", user.Email)
 	c.JSON(200, gin.H{"user": user})
+}
+
+func (u *UserController) GetAllUsers(c *gin.Context) {
+}
+
+func (u *UserController) GetUserProfile(c *gin.Context) {
+}
+
+func (u *UserController) GetAllStaffs(c *gin.Context) {
+}
+
+func (u *UserController) GetAllParents(c *gin.Context) {
+}
+
+func (u *UserController) GetAuthenticatedUser(c *gin.Context) {
 }
 
 func (u *UserController) CreateUser(c *gin.Context) {

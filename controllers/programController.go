@@ -9,7 +9,7 @@ import (
 
 type ProgramController struct{}
 
-func (p *ProgramController) FetchProgram(c *gin.Context) {
+func (p *ProgramController) GetProgram(c *gin.Context) {
 	id := c.Param("id")
 	var program models.Program
 
@@ -28,6 +28,9 @@ func (p *ProgramController) FetchProgram(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Fetched Program: %s %s", program.Name)
 	c.JSON(200, gin.H{"program": program})
+}
+
+func (p *ProgramController) GetAllPrograms(c *gin.Context) {
 }
 
 func (p *ProgramController) CreateProgram(c *gin.Context) {
@@ -106,4 +109,19 @@ func (p *ProgramController) DeleteProgram(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Deleted Program with ID: %s", id)
 	c.JSON(200, gin.H{"message": "Program deleted successfully"})
+}
+
+func (p *ProgramController) GetProgramClasses(c *gin.Context) {
+}
+
+func (p *ProgramController) GetProgramActivities(c *gin.Context) {
+}
+
+func (p *ProgramController) AddClassToProgram(c *gin.Context) {
+}
+
+func (p *ProgramController) AddActivityToProgram (c *gin.Context) {
+}
+
+func (p *ProgramController) DeleteActivity (c *gin.Context) {
 }

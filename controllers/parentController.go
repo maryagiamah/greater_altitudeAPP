@@ -9,7 +9,7 @@ import (
 
 type ParentController struct{}
 
-func (p *ParentController) FetchParent(c *gin.Context) {
+func (p *ParentController) GetParent(c *gin.Context) {
 	id := c.Param("id")
 	var parent models.Parent
 
@@ -29,6 +29,15 @@ func (p *ParentController) FetchParent(c *gin.Context) {
 	utils.H.Logger.Printf("Fetched Parent: %s %s", parent.User.FirstName, parent.User.LastName)
 	c.JSON(200, gin.H{"parent": parent})
 
+}
+
+func (p *ParentController) GetAllParents(c *gin.Context) {
+}
+
+func (p *ParentController) GetPupilsByParent(c *gin.Context) {
+}
+
+func (p *ParentController) AddPupilToParent(c *gin.Context) {
 }
 
 func (p *ParentController) CreateParent(c *gin.Context) {

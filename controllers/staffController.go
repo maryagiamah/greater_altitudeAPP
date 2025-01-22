@@ -9,7 +9,7 @@ import (
 
 type StaffController struct{}
 
-func (s *StaffController) FetchStaff(c *gin.Context) {
+func (s *StaffController) GetStaff(c *gin.Context) {
 	id := c.Param("id")
 	var staff models.Staff
 
@@ -28,6 +28,9 @@ func (s *StaffController) FetchStaff(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Fetched Staff: %s %s", staff.User.FirstName, staff.User.LastName)
 	c.JSON(200, gin.H{"staff": staff})
+}
+
+func (s *StaffController) GetAllStaffs(c *gin.Context) {
 }
 
 func (s *StaffController) CreateStaff(c *gin.Context) {

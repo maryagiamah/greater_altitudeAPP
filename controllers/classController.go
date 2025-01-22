@@ -9,7 +9,7 @@ import (
 
 type ClassController struct{}
 
-func (cl *ClassController) FetchClass(c *gin.Context) {
+func (cl *ClassController) GetClass(c *gin.Context) {
 	id := c.Param("id")
 	var class models.Class
 
@@ -105,4 +105,22 @@ func (cl *ClassController) DeleteClass(c *gin.Context) {
 	}
 	utils.H.Logger.Printf("Deleted Class with ID: %s", id)
 	c.JSON(200, gin.H{"message": "Class deleted successfully"})
+}
+
+func (cl *ClassController) GetAllClasses(c *gin.Context) {
+}
+
+func (cl *ClassController) AddPupilToClass(c *gin.Context) {
+}
+
+func (cl *ClassController) AssignTeacherToClass(c *gin.Context) {
+}
+
+func (cl *ClassController) GetPupilsInClass(c *gin.Context) {
+}
+
+func (cl *ClassController) GetTeachersInClass(c *gin.Context) {
+}
+
+func (cl *ClassController) GetClassActivities(c *gin.Context) {
 }

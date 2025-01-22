@@ -7,22 +7,25 @@ import (
 )
 
 func RegisterBillingServices(rg *gin.RouterGroup) {
-	invoice := rg.Group("/invoices")
+	invoiceController := &controllers.InvoiceController{}
+	paymentController := &controllers.PaymentController{}
+
+	invoice := rg.Group("/invoices", middleware.AuthMiddleware())
 	{
-		invoice.GET("/", getAllInvoices)
-		invoice.GET("/:id", getInvoiceByID)
-		invoice.POST("/", createInvoice)
-		invoice.POST("/:id/payments", makeInvoicePayment)
-		invoice.PUT("/:id", updateInvoice)
-		invoice.DELETE("/:id", deleteInvoice)
+		invoice.GET("/", invoiceController.GetAllInvoices)
+		invoice.GET("/:id", invoiceController.GetInvoice)
+		invoice.POST("/", invoiceController.CreateInvoice)
+		invoice.POST("/:id/payments", invoiceController.MakePayment)
+		invoice.PUT("/:id", invoiceController.UpdateInvoice)
+		invoice.DELETE("/:id", invoiceController.DeleteInvoice)
 	}
 
-	payment := rg.Group("/payments")
+	payment := rg.Group("/payments", middleware.AuthMiddleware())
 	{
-		payment.GET("/", getAllPayments)
-		payment.GET("/:id", getPaymentByID)
-		payment.POST("/", createPayment)
-		payment.PUT("/:id", updatePayment)
-		payment.DELETE("/:id", deletePayment)
+		payment.GET("/", paymentController.GetAllPayments)
+		payment.GET("/:id", paymentController.GetPayment)
+		payment.POST("/", paymentController.CreatePayment)
+		payment.PUT("/:id", paymentController.UpdatePayment)
+		payment.DELETE("/:id", paymentController.DeletePayment)
 	}
 }

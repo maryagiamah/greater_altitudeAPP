@@ -123,33 +123,6 @@ func (r *RoleController) DeleteRole(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Role deleted successfully"})
 }
 
-func UpdateRolePermissions(c *gin.Context) {
-
-	id := c.Param("id")
-
-	var role models.Role
-	var permission models.Permission
-
-	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
-		return
-	}
-
-	if err := c.ShouldBindJSON(permission); err != nil {
-                c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
-                return
-        }
-
-	if err := utils.H.DB.First(&role, id).Error; err != nil {
-		return fmt.Errorf("role not found: %v", err)
-	}
-
-	if err := utils.H.DB.First(&permission, permissionID).Error; err != nil {
-		return fmt.Errorf("permission not found: %v", err)
-	}
-
-	if err := utils.H.DB.Model(&role).Association("Permissions").Append(&permission); err != nil {
-		return fmt.Errorf("failed to link permission to role: %v", err)
-	}
+func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
 
 }

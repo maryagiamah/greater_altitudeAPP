@@ -9,31 +9,32 @@ import (
 func RegisterClassServices(rg *gin.RouterGroup) {
 
 	classController := &controllers.ClassController{}
+	pupilController := &controllers.PupilController{}
 
-	class := rg.Group("/classes", middleware.AdminMiddleware())
+	class := rg.Group("/classes", middleware.AuthMiddleware())
 	{
-		class.POST("/", CreateClass)
-		class.GET("/", GetAllClasses)
-		class.GET("/:id", GetClassDetails)
-		class.PUT("/:id", UpdateClass)
-		class.DELETE("/:id", DeleteClass)
+		class.POST("/", classController.CreateClass)
+		class.GET("/", classController.GetAllClasses)
+		class.GET("/:id", classController.GetClass)
+		class.PUT("/:id", classController.UpdateClass)
+		class.DELETE("/:id", classController.DeleteClass)
 
-		class.POST("/:id/pupil", AddPupilToClass)
-		class.POST("/:id/teacher", AssignTeacherToClass)
-		class.GET("/:id/pupils", GetPupilsInClass)
-		class.GET("/:id/teachers", GetTeachersInClass)
-		class.GET("/:id/activities", getClassActivities)
+		class.POST("/:id/pupil", classController.AddPupilToClass)
+		class.POST("/:id/teacher", classController.AssignTeacherToClass)
+		class.GET("/:id/pupils", classController.GetPupilsInClass)
+		class.GET("/:id/teachers", classController.GetTeachersInClass)
+		class.GET("/:id/activities", classController.GetClassActivities)
 	}
 
 	pupil := rg.Group("/pupils")
 	{
-		pupil.POST("/", createPupil)
-		pupil.GET("/", listPupils)
-		pupil.GET("/:id", getPupil)
-		pupil.PUT("/:id", updatePupil)
-		pupil.DELETE("/:id", deletePupil)
+		pupil.POST("/", pupilController.CreatePupil)
+		pupil.GET("/", pupilController.GetAllPupils)
+		pupil.GET("/:id", pupilController.GetPupil)
+		pupil.PUT("/:id", pupilController.UpdatePupil)
+		pupil.DELETE("/:id", pupilController.DeletePupil)
 
-		pupil.GET("/:id/classes", GetAllClasses)
+		pupil.GET("/:id/classes", pupilController.GetAllClasses)
 	}
 
 }

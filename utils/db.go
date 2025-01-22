@@ -78,12 +78,19 @@ func InitDB() {
 
         if err := H.DB.AutoMigrate(
                 &models.User{},
+		&models.Message{},
                 &models.Parent{},
                 &models.Program{},
+		&models.Activity{},
                 &models.Class{},
                 &models.Pupil{},
+		&models.Invoice{},
+		&models.Payment{},
                 &models.Event{},
                 &models.Staff{},
+		&models.Report{},
+		&models.Role{},
+		&models.Permission{},
         ); err != nil {
                 H.Logger.Fatal("Failed to migrate tables: ", err)
         }

@@ -10,6 +10,7 @@ func RegisterAdminServices(rg *gin.RouterGroup) {
 	authController := &controllers.AuthController{}
 	userController := &controllers.UserController{}
 	roleController := &controllers.RoleController{}
+	permissionController := &controllers.PermissionController{}
 
 	admin := rg.Group("/admin", middleware.AuthMiddleware(), middleware.RoleMiddleware("superUser"))
 	{
@@ -22,7 +23,7 @@ func RegisterAdminServices(rg *gin.RouterGroup) {
 		admin.GET("/roles", roleController.GetRoles)
 		admin.PUT("/roles/:id", roleController.UpdateRole)
 		admin.DELETE("/roles/:id", roleController.DeleteRole)
-		admin.PUT("/roles/:id/permissions", UpdateRolePermissions)
-		admin.GET("/permissions", GetPermissions)
+		admin.PUT("/roles/:id/permissions", roleController.UpdateRolePermissions)
+		admin.GET("/permissions", permissionController.GetPermissions)
 	}
 }

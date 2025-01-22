@@ -14,6 +14,6 @@ func main() {
 
 	routes.RegisterRoutes(r)
 
-	defer config.CloseDB()
+	defer utils.CloseDB()
 	r.Run(":8080")
 }

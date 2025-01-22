@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"greaterAltitudeapp/config"
+	"greaterAltitudeapp/utils"
 	"greaterAltitudeapp/routes"
 )
 
 func init() {
-	config.InitDB()
+	utils.InitDB()
 }
 func main() {
 	r := gin.Default()

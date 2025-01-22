@@ -6,8 +6,8 @@ import (
 	"greaterAltitudeapp/middleware"
 )
 
-func RegisterUserServices(r *gin.Engine) {
-	user := r.Group("/users", middleware.AuthMiddleware())
+func RegisterUserServices(rg *gin.RouterGroup) {
+	user := rg.Group("/users", middleware.AuthMiddleware())
 	{
 		user.GET("/", userController.GetAllUsers)
 		user.GET("/:id", userController.FetchUser)
@@ -19,19 +19,19 @@ func RegisterUserServices(r *gin.Engine) {
 		user.GET("/me", userController.GetAuthenticatedUser)
 	}
 
-	parent := r.Group("/parents", middleware.AdminMiddleware())
+	parent := rg.Group("/parents", middleware.AdminMiddleware())
 	{
-		parents.GET("/", GetAllParents)
-		parents.GET("/:id", GetParentDetails)
-		parents.POST("/", CreateParent)
-		parents.PUT("/:id", UpdateParent)
-		parents.DELETE("/:id", DeleteParent)
+		parent.GET("/", GetAllParents)
+		parent.GET("/:id", GetParentDetails)
+		parent.POST("/", CreateParent)
+		parent.PUT("/:id", UpdateParent)
+		parent.DELETE("/:id", DeleteParent)
 
-		parents.GET("/:id/wards", GetPupilsByParent)
-		parents.POST("/:id/ward", AddPupilToParent)
+		parent.GET("/:id/wards", GetPupilsByParent)
+		parent.POST("/:id/ward", AddPupilToParent)
 	}
 
-	staff := router.Group("/staff")
+	staff := rg.Group("/staff")
 	{
 		staff.POST("/", createStaff)
 		staff.GET("/", listStaff)

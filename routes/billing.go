@@ -6,23 +6,23 @@ import (
 	"greaterAltitudeapp/middleware"
 )
 
-func RegisterBillingServices(r *gin.Engine) {
-	invoiceRoutes := r.Group("/invoices")
+func RegisterBillingServices(rg *gin.RouterGroup) {
+	invoice := rg.Group("/invoices")
 	{
-		invoiceRoutes.GET("/", getAllInvoices)
-		invoiceRoutes.GET("/:id", getInvoiceByID)
-		invoiceRoutes.POST("/", createInvoice)
-		invoiceRoutes.POST("/:id/payments", makeInvoicePayment)
-		invoiceRoutes.PUT("/:id", updateInvoice)
-		invoiceRoutes.DELETE("/:id", deleteInvoice)
+		invoice.GET("/", getAllInvoices)
+		invoice.GET("/:id", getInvoiceByID)
+		invoice.POST("/", createInvoice)
+		invoice.POST("/:id/payments", makeInvoicePayment)
+		invoice.PUT("/:id", updateInvoice)
+		invoice.DELETE("/:id", deleteInvoice)
 	}
 
-	paymentRoutes := r.Group("/payments")
+	payment := rg.Group("/payments")
 	{
-		paymentRoutes.GET("/", getAllPayments)
-		paymentRoutes.GET("/:id", getPaymentByID)
-		paymentRoutes.POST("/", createPayment)
-		paymentRoutes.PUT("/:id", updatePayment)
-		paymentRoutes.DELETE("/:id", deletePayment)
+		payment.GET("/", getAllPayments)
+		payment.GET("/:id", getPaymentByID)
+		payment.POST("/", createPayment)
+		payment.PUT("/:id", updatePayment)
+		payment.DELETE("/:id", deletePayment)
 	}
 }

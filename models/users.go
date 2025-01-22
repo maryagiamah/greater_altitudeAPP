@@ -14,6 +14,7 @@ type User struct {
 	BaseModel
 	Email    string `gorm:"size:256;unique;not null" json:"email"`
 	Password string `gorm:"size:256;unique;not null" json:"-"`
+	IsActive bool   `gorm:"default:true" json:"isActive"`
 	Role     string `gorm:"size:25;not null" json:"role"`
 	Mobile   string `gorm:"size:15;not null" json:"mobile"`
 }

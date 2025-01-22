@@ -6,17 +6,22 @@ import (
 	"greaterAltitudeapp/middleware"
 )
 
-func RegisterAdminServices(r *gin.Engine) {
-	admin := r.Group("/admin", middleware.AuthMiddleware(), middleware.RoleMiddleware("superUser"))
-	{
-		admin.POST("/login", Login)
-		admin.POST("/signup", CreateUser)
-		admin.PUT("/users/:id/activate", ActivateUser)
-		admin.PUT("/users/:id/deactivate", DeactivateUser)
+func RegisterAdminServices(rg *gin.RouterGroup) {
+	authController := &controllers.AuthController{}
+	userController := &controllers.UserController{}
+	roleController := &controllers.RoleController{}
 
-		admin.POST("/roles", CreateRole)
-		admin.GET("/roles", GetRoles)
-		admin.PUT("/roles/:id", UpdateRole)
+	admin := rg.Group("/admin", middleware.AuthMiddleware(), middleware.RoleMiddleware("superUser"))
+	{
+		admin.POST("/login", authController.Login)
+		admin.POST("/signup", authController.SignUp)
+		admin.PUT("/users/:id/activate", userController.ActivateUser)
+		admin.PUT("/users/:id/deactivate", userController.DeactivateUser)
+
+		admin.POST("/roles", roleController.CreateRole)
+		admin.GET("/roles", roleController.GetRoles)
+		admin.PUT("/roles/:id", roleController.UpdateRole)
+		admin.DELETE("/roles/:id", roleController.DeleteRole)
 		admin.PUT("/roles/:id/permissions", UpdateRolePermissions)
 		admin.GET("/permissions", GetPermissions)
 	}

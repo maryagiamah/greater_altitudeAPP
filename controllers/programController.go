@@ -45,7 +45,7 @@ func (p *ProgramController) CreateProgram(c *gin.Context) {
 		return
 	}
 
-	utils.H.Logger.Printf("New Pupil Created with ID: %d", newProgram.ID)
+	utils.H.Logger.Printf("New Program Created with ID: %d", newProgram.ID)
 	c.JSON(201, gin.H{"ID": newProgram.ID})
 }
 

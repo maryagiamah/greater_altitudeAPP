@@ -6,20 +6,20 @@ import (
 	"greaterAltitudeapp/middleware"
 )
 
-func ProgramServices(r *Engine) {
-	programs := r.Group("/programs", middleware.AuthMiddleware())
+func ProgramServices(rg *gin.RouterGroup) {
+	program := rg.Group("/programs", middleware.AuthMiddleware())
 	{
-		programs.POST("/", CreateProgram)
-		programs.GET("/", GetAllPrograms)
-		programs.GET("/:id", GetProgramDetails)
-		programs.PUT("/:id", UpdateProgram)
-		programs.DELETE("/:id", DeleteProgram)
+		program.POST("/", CreateProgram)
+		program.GET("/", GetAllPrograms)
+		program.GET("/:id", GetProgramDetails)
+		program.PUT("/:id", UpdateProgram)
+		program.DELETE("/:id", DeleteProgram)
 
-		programs.GET("/:id/classes", GetProgramClasses)
-		programs.GET("/:id/activities", GetProgramActivities)
-		programs.POST("/:id/class", AddClassToProgram)
-		programs.POST("/:id/activity", AddActivityToProgram)
-		programs.DELETE("/activities/:id", DeleteActivity)
+		program.GET("/:id/classes", GetProgramClasses)
+		program.GET("/:id/activities", GetProgramActivities)
+		program.POST("/:id/class", AddClassToProgram)
+		program.POST("/:id/activity", AddActivityToProgram)
+		program.DELETE("/activities/:id", DeleteActivity)
 	}
 
 }

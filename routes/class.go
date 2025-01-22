@@ -6,26 +6,26 @@ import (
 	"greaterAltitudeapp/middleware"
 )
 
-func RegisterClassServices(r *gin.Engine) {
+func RegisterClassServices(rg *gin.RouterGroup) {
 
 	classController := &controllers.ClassController{}
 
-	classes := r.Group("/classes", middleware.AdminMiddleware())
+	class := rg.Group("/classes", middleware.AdminMiddleware())
 	{
-		classes.POST("/", CreateClass)
-		classes.GET("/", GetAllClasses)
-		classes.GET("/:id", GetClassDetails)
-		classes.PUT("/:id", UpdateClass)
-		classes.DELETE("/:id", DeleteClass)
+		class.POST("/", CreateClass)
+		class.GET("/", GetAllClasses)
+		class.GET("/:id", GetClassDetails)
+		class.PUT("/:id", UpdateClass)
+		class.DELETE("/:id", DeleteClass)
 
-		classes.POST("/:id/pupil", AddPupilToClass)
-		classes.POST("/:id/teacher", AssignTeacherToClass)
-		classes.GET("/:id/pupils", GetPupilsInClass)
-		classes.GET("/:id/teachers", GetTeachersInClass)
-		classes.GET("/:id/activities", getClassActivities)
+		class.POST("/:id/pupil", AddPupilToClass)
+		class.POST("/:id/teacher", AssignTeacherToClass)
+		class.GET("/:id/pupils", GetPupilsInClass)
+		class.GET("/:id/teachers", GetTeachersInClass)
+		class.GET("/:id/activities", getClassActivities)
 	}
 
-	pupil := router.Group("/pupils")
+	pupil := rg.Group("/pupils")
 	{
 		pupil.POST("/", createPupil)
 		pupil.GET("/", listPupils)

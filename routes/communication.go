@@ -6,36 +6,36 @@ import (
 	"greaterAltitudeapp/middleware"
 )
 
-func RegisterCommunicationServices(r *gin.Engine) {
+func RegisterCommunicationServices(rg *gin.RouterGroup) {
 
-	messages := r.Group("/messages", middleware.AuthMiddleware())
+	message := rg.Group("/messages", middleware.AuthMiddleware())
 	{
-		messages.POST("/", CreateMessage)
-		messages.GET("/inbox", GetInboxMessages)
-		messages.GET("/sent", GetSentMessages)
-		messages.PUT("/:id/read", MarkMessageAsRead)
-		messages.DELETE("/:id", DeleteMessage)
+		message.POST("/", CreateMessage)
+		message.GET("/inbox", GetInboxMessages)
+		message.GET("/sent", GetSentMessages)
+		message.PUT("/:id/read", MarkMessageAsRead)
+		message.DELETE("/:id", DeleteMessage)
 	}
 
-	reports := r.Group("/reports", middleware.AuthMiddleware())
+	report := rg.Group("/reports", middleware.AuthMiddleware())
 	{
-		reports.POST("/", CreateReport)
-		reports.GET("/", GetAllReports)
-		reports.GET("/:id", GetReportDetails)
-		reports.PUT("/:id", UpdateReport)
-		reports.DELETE("/:id", DeleteReport)
+		report.POST("/", CreateReport)
+		report.GET("/", GetAllReports)
+		report.GET("/:id", GetReportDetails)
+		report.PUT("/:id", UpdateReport)
+		report.DELETE("/:id", DeleteReport)
 
-		reports.GET("/pupil/:pupilId", GetPupilReports)
-            reports.GET("/teacher/:teacherId", GetTeacherReports)
+		report.GET("/pupil/:pupilId", GetPupilReports)
+		report.GET("/teacher/:teacherId", GetTeacherReports)
 	}
 
-	events := r.Group("/events", middleware.AuthMiddleware())
+	event := rg.Group("/events", middleware.AuthMiddleware())
 	{
-		events.POST("/", CreateEvent)
-		events.GET("/", GetAllEvents)
-		events.GET("/:id", GetEventDetails)
-		events.PUT("/:id", UpdateEvent)
-		events.DELETE("/:id", DeleteEvent)
+		event.POST("/", CreateEvent)
+		event.GET("/", GetAllEvents)
+		event.GET("/:id", GetEventDetails)
+		event.PUT("/:id", UpdateEvent)
+		event.DELETE("/:id", DeleteEvent)
 	}
 
 }

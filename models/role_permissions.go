@@ -1,7 +1,7 @@
 package models
 
 import (
-        "gorm.io/gorm"
+	"gorm.io/gorm"
 )
 
 type Permission struct {
@@ -12,6 +12,6 @@ type Permission struct {
 
 type Role struct {
 	gorm.Model
-	Name        string `gorm:"not null;unique"`
+	Name        string       `gorm:"not null;unique"`
 	Permissions []Permission `gorm:"many2many:role_permissions;"`
 }

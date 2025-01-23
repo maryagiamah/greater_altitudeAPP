@@ -108,6 +108,18 @@ func (cl *ClassController) DeleteClass(c *gin.Context) {
 }
 
 func (cl *ClassController) GetAllClasses(c *gin.Context) {
+	var classes []models.Class
+
+        if err := utils.H.DB.Find(&classes).Error; err != nil {
+                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+                return
+        }
+
+        if len(classes) == 0 {
+                c.JSON(404, gin.H{"error": "No class found"})
+                return
+        }
+        c.JSON(200, gin.H{"classes": classes})
 }
 
 func (cl *ClassController) AddPupilToClass(c *gin.Context) {

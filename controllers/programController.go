@@ -31,6 +31,18 @@ func (p *ProgramController) GetProgram(c *gin.Context) {
 }
 
 func (p *ProgramController) GetAllPrograms(c *gin.Context) {
+	var programs []models.Program
+
+        if err := utils.H.DB.Find(&programs).Error; err != nil {
+                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+                return
+        }
+
+        if len(programs) == 0 {
+                c.JSON(404, gin.H{"error": "No program found"})
+                return
+        }
+        c.JSON(200, gin.H{"programs": programs})
 }
 
 func (p *ProgramController) CreateProgram(c *gin.Context) {

@@ -31,6 +31,18 @@ func (r *ReportController) GetReport(c *gin.Context) {
 }
 
 func (r *ReportController) GetAllReports(c *gin.Context) {
+	var reports []models.Report
+
+        if err := utils.H.DB.Find(&reports).Error; err != nil {
+                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+                return
+        }
+
+        if len(reports) == 0 {
+                c.JSON(404, gin.H{"error": "No report found"})
+                return
+        }
+        c.JSON(200, gin.H{"reports": reports})
 }
 
 func (r *ReportController) CreateReport(c *gin.Context) {

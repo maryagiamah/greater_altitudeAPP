@@ -31,6 +31,18 @@ func (u *UserController) GetUser(c *gin.Context) {
 }
 
 func (u *UserController) GetAllUsers(c *gin.Context) {
+	var users []models.User
+
+        if err := utils.H.DB.Find(&users).Error; err != nil {
+                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+                return
+        }
+
+        if len(users) == 0 {
+                c.JSON(404, gin.H{"error": "No user found"})
+                return
+        }
+        c.JSON(200, gin.H{"users": users})
 }
 
 func (u *UserController) GetUserProfile(c *gin.Context) {

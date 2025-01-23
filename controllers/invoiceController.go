@@ -31,6 +31,18 @@ func (i *InvoiceController) GetInvoice(c *gin.Context) {
 }
 
 func (i *InvoiceController) GetAllInvoices(c *gin.Context) {
+	var invoices []models.Invoice
+
+        if err := utils.H.DB.Find(&invoices).Error; err != nil {
+                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+                return
+        }
+
+        if len(invoices) == 0 {
+                c.JSON(404, gin.H{"error": "No invoice found"})
+                return
+        }
+        c.JSON(200, gin.H{"invoices": invoices})
 }
 
 func (i *InvoiceController) CreateInvoice(c *gin.Context) {

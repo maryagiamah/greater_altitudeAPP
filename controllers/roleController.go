@@ -124,5 +124,32 @@ func (r *RoleController) DeleteRole(c *gin.Context) {
 }
 
 func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
+	id := c.Param("id")
+	var role models.Role
+	var newPermission models.Permission
 
+	if id == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+
+	if err := utils.H.DB.First(&role, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	if err := c.ShouldBindJSON(&newPermission); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		return
+	}
+
+	if err := utils.H.DB.Association("Permissions").Append(newPermission).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add permision to role"})
+	}
+
+	c.JSON(200, gin.H{"message": "Permission succesfully added to role"})
 }

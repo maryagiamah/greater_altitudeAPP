@@ -66,12 +66,19 @@ func InitDB() {
 
         if err := H.DB.Migrator().DropTable(
                 &models.User{},
+		&models.Message{},
                 &models.Parent{},
                 &models.Program{},
+		&models.Activity{},
                 &models.Class{},
                 &models.Pupil{},
-                &models.Event{},
+		&models.Invoice{},
+		&models.Payment{},
+		&models.Event{},
                 &models.Staff{},
+		&models.Report{},
+		&models.Role{},
+		&models.Permission{},
         ); err != nil {
                 log.Fatal("Failed to drop tables: ", err)
         }

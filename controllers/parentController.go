@@ -34,16 +34,16 @@ func (p *ParentController) GetParent(c *gin.Context) {
 func (p *ParentController) GetAllParents(c *gin.Context) {
 	var parents []models.Parent
 
-        if err := utils.H.DB.Find(&parents).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&parents).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(parents) == 0 {
-                c.JSON(404, gin.H{"error": "No parent found"})
-                return
-        }
-        c.JSON(200, gin.H{"parents": parents})
+	if len(parents) == 0 {
+		c.JSON(404, gin.H{"error": "No parent found"})
+		return
+	}
+	c.JSON(200, gin.H{"parents": parents})
 }
 
 func (p *ParentController) GetPupilsByParent(c *gin.Context) {

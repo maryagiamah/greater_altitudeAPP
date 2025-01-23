@@ -110,22 +110,78 @@ func (cl *ClassController) DeleteClass(c *gin.Context) {
 func (cl *ClassController) GetAllClasses(c *gin.Context) {
 	var classes []models.Class
 
-        if err := utils.H.DB.Find(&classes).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&classes).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(classes) == 0 {
-                c.JSON(404, gin.H{"error": "No class found"})
-                return
-        }
-        c.JSON(200, gin.H{"classes": classes})
+	if len(classes) == 0 {
+		c.JSON(404, gin.H{"error": "No class found"})
+		return
+	}
+	c.JSON(200, gin.H{"classes": classes})
 }
 
 func (cl *ClassController) AddPupilToClass(c *gin.Context) {
+	id := c.Param("id")
+	var class models.Class
+	var newPupil models.Pupil
+
+	if id == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+
+	if err := utils.H.DB.First(&class, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Class not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	if err := c.ShouldBindJSON(&newPupil); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		return
+	}
+
+	if err := utils.H.DB.Association("Pupils").Append(newPupil).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add pupil to class"})
+	}
+
+	c.JSON(200, gin.H{"message": "Pupil succesfully added to class"})
 }
 
 func (cl *ClassController) AssignTeacherToClass(c *gin.Context) {
+	id := c.Param("id")
+	var class models.Class
+	var newTeacher models.Staff
+
+	if id == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+
+	if err := utils.H.DB.First(&class, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Class not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	if err := c.ShouldBindJSON(&newTeacher); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		return
+	}
+
+	if err := utils.H.DB.Association("Teachers").Append(newTeacher).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add teacher to class"})
+	}
+
+	c.JSON(200, gin.H{"message": "Teacher succesfully added to class"})
 }
 
 func (cl *ClassController) GetPupilsInClass(c *gin.Context) {

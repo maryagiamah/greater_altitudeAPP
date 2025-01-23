@@ -34,16 +34,16 @@ func (p *PupilController) GetPupil(c *gin.Context) {
 func (p *PupilController) GetAllPupils(c *gin.Context) {
 	var pupils []models.Pupil
 
-        if err := utils.H.DB.Find(&pupils).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&pupils).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(pupils) == 0 {
-                c.JSON(404, gin.H{"error": "No pupil found"})
-                return
-        }
-        c.JSON(200, gin.H{"pupils": pupils})
+	if len(pupils) == 0 {
+		c.JSON(404, gin.H{"error": "No pupil found"})
+		return
+	}
+	c.JSON(200, gin.H{"pupils": pupils})
 }
 
 func (p *PupilController) CreatePupil(c *gin.Context) {

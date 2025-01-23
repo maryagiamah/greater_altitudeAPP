@@ -20,7 +20,7 @@ func ProgramServices(rg *gin.RouterGroup) {
 		program.GET("/:id/classes", programController.GetProgramClasses)
 		program.GET("/:id/activities", programController.GetProgramActivities)
 		program.POST("/:id/class", programController.AddClassToProgram)
-		program.POST("/:id/activity",programController. AddActivityToProgram)
+		program.POST("/:id/activity", programController.AddActivityToProgram)
 		program.DELETE("/activities/:id", programController.DeleteActivity)
 	}
 

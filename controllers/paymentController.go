@@ -33,16 +33,16 @@ func (p *PaymentController) GetPayment(c *gin.Context) {
 func (p *PaymentController) GetAllPayments(c *gin.Context) {
 	var payments []models.Payment
 
-        if err := utils.H.DB.Find(&payments).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&payments).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(payments) == 0 {
-                c.JSON(404, gin.H{"error": "No payment found"})
-                return
-        }
-        c.JSON(200, gin.H{"payments": payments})
+	if len(payments) == 0 {
+		c.JSON(404, gin.H{"error": "No payment found"})
+		return
+	}
+	c.JSON(200, gin.H{"payments": payments})
 }
 
 func (p *PaymentController) CreatePayment(c *gin.Context) {

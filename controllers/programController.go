@@ -33,16 +33,16 @@ func (p *ProgramController) GetProgram(c *gin.Context) {
 func (p *ProgramController) GetAllPrograms(c *gin.Context) {
 	var programs []models.Program
 
-        if err := utils.H.DB.Find(&programs).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&programs).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(programs) == 0 {
-                c.JSON(404, gin.H{"error": "No program found"})
-                return
-        }
-        c.JSON(200, gin.H{"programs": programs})
+	if len(programs) == 0 {
+		c.JSON(404, gin.H{"error": "No program found"})
+		return
+	}
+	c.JSON(200, gin.H{"programs": programs})
 }
 
 func (p *ProgramController) CreateProgram(c *gin.Context) {
@@ -130,10 +130,38 @@ func (p *ProgramController) GetProgramActivities(c *gin.Context) {
 }
 
 func (p *ProgramController) AddClassToProgram(c *gin.Context) {
+	id := c.Param("id")
+        var program models.Program
+        var newClass models.Class
+
+        if id == "" {
+                c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+                return
+        }
+
+        if err := utils.H.DB.First(&program, id).Error; err != nil {
+                if err == gorm.ErrRecordNotFound {
+                        c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+                } else {
+                        c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+                }
+                return
+        }
+
+	if err := c.ShouldBindJSON(&newClass); err != nil {
+                c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+                return
+        }
+
+        if err := utils.H.DB.Association("Classes").Append(newClass).Error; err != nil {
+                c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add class to program"})
+        }
+
+        c.JSON(200, gin.H{"message": "Classes succesfully added to program"})
 }
 
-func (p *ProgramController) AddActivityToProgram (c *gin.Context) {
+func (p *ProgramController) AddActivityToProgram(c *gin.Context) {
 }
 
-func (p *ProgramController) DeleteActivity (c *gin.Context) {
+func (p *ProgramController) DeleteActivity(c *gin.Context) {
 }

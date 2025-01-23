@@ -33,16 +33,16 @@ func (i *InvoiceController) GetInvoice(c *gin.Context) {
 func (i *InvoiceController) GetAllInvoices(c *gin.Context) {
 	var invoices []models.Invoice
 
-        if err := utils.H.DB.Find(&invoices).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&invoices).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(invoices) == 0 {
-                c.JSON(404, gin.H{"error": "No invoice found"})
-                return
-        }
-        c.JSON(200, gin.H{"invoices": invoices})
+	if len(invoices) == 0 {
+		c.JSON(404, gin.H{"error": "No invoice found"})
+		return
+	}
+	c.JSON(200, gin.H{"invoices": invoices})
 }
 
 func (i *InvoiceController) CreateInvoice(c *gin.Context) {
@@ -124,4 +124,32 @@ func (i *InvoiceController) DeleteInvoice(c *gin.Context) {
 }
 
 func (i *InvoiceController) MakePayment(c *gin.Context) {
+	id := c.Param("id")
+	var invoice models.Invoice
+	var newPayment models.Payment
+
+	if id == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+
+	if err := utils.H.DB.First(&invoice, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Invoice not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	if err := c.ShouldBindJSON(&newPayment); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		return
+	}
+
+	if err := utils.H.DB.Association("Payments").Append(newPayment).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add payment to invoice"})
+	}
+
+	c.JSON(200, gin.H{"message": "Payment succesfully added to invoice"})
 }

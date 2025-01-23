@@ -33,16 +33,16 @@ func (s *StaffController) GetStaff(c *gin.Context) {
 func (s *StaffController) GetAllStaffs(c *gin.Context) {
 	var staffs []models.Staff
 
-        if err := utils.H.DB.Find(&staffs).Error; err != nil {
-                c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
-                return
-        }
+	if err := utils.H.DB.Find(&staffs).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
-        if len(staffs) == 0 {
-                c.JSON(404, gin.H{"error": "No staff found"})
-                return
-        }
-        c.JSON(200, gin.H{"staffs": staffs})
+	if len(staffs) == 0 {
+		c.JSON(404, gin.H{"error": "No staff found"})
+		return
+	}
+	c.JSON(200, gin.H{"staffs": staffs})
 }
 
 func (s *StaffController) CreateStaff(c *gin.Context) {

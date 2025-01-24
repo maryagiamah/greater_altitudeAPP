@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"greaterAltitudeapp/controllers"
-	"greaterAltitudeapp/middleware"
 )
 
 func RegisterAdminServices(rg *gin.RouterGroup) {
@@ -12,7 +11,7 @@ func RegisterAdminServices(rg *gin.RouterGroup) {
 	roleController := &controllers.RoleController{}
 	permissionController := &controllers.PermissionController{}
 
-	admin := rg.Group("/admin", middleware.AuthMiddleware(), middleware.RoleMiddleware("superUser"))
+	admin := rg.Group("/admin")
 	{
 		admin.POST("/login", authController.Login)
 		admin.POST("/signup", authController.SignUp)

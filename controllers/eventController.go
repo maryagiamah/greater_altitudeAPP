@@ -26,7 +26,7 @@ func (e *EventController) GetEvent(c *gin.Context) {
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched event: %s", event.Name)
+
 	c.JSON(200, gin.H{"event": event})
 }
 
@@ -39,7 +39,7 @@ func (e *EventController) GetAllEvents(c *gin.Context) {
 	}
 
 	if len(events) == 0 {
-		c.JSON(404, gin.H{"error": "No event found"})
+		c.JSON(404, gin.H{"error": "No events found"})
 		return
 	}
 	c.JSON(200, gin.H{"events": events})
@@ -49,19 +49,21 @@ func (e *EventController) CreateEvent(c *gin.Context) {
 	var newEvent models.Event
 
 	if err := c.ShouldBindJSON(&newEvent); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newEvent)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Event"})
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Event Created with ID: %d", newEvent.ID)
-	c.JSON(201, gin.H{"ID": newEvent.ID})
+	c.JSON(201, gin.H{
+		"message": "Event created successfully",
+		"ID":      newEvent.ID,
+	})
 }
 
 func (e *EventController) UpdateEvent(c *gin.Context) {
@@ -75,7 +77,7 @@ func (e *EventController) UpdateEvent(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
@@ -90,13 +92,14 @@ func (e *EventController) UpdateEvent(c *gin.Context) {
 	result := utils.H.DB.Model(&event).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update event"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated event with ID: %d", event.ID)
-	c.JSON(200, gin.H{"ID": event.ID})
+	c.JSON(200, gin.H{
+		"ID":      event.ID,
+		"message": "Event updated successfully",
+	})
 }
 
 func (e *EventController) DeleteEvent(c *gin.Context) {
@@ -119,6 +122,6 @@ func (e *EventController) DeleteEvent(c *gin.Context) {
 		c.AbortWithStatusJSON(404, gin.H{"error": "Event not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Event with ID: %s", id)
+
 	c.JSON(200, gin.H{"message": "Event deleted successfully"})
 }

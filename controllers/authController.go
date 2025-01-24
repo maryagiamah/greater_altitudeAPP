@@ -5,7 +5,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
-	"log"
 )
 
 type AuthController struct{}
@@ -17,18 +16,18 @@ func (a *AuthController) Login(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&login); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid Credentials"})
+		c.JSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	var user models.User
 	if err := utils.H.DB.Where("email = ?", login.Email).First(&user).Error; err != nil {
-		c.JSON(401, gin.H{"error": "Invalid Email"})
+		c.JSON(401, gin.H{"error": "Invalid Email or password"})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
-		c.JSON(401, gin.H{"error": "Invalid Password"})
+		c.JSON(401, gin.H{"error": "Invalid Email or password"})
 		return
 	}
 
@@ -39,7 +38,7 @@ func (a *AuthController) Login(c *gin.Context) {
 
 	token, err := utils.GenerateJWT(user.ID, user.Role)
 	if err != nil {
-		log.Print(err)
+		utils.H.Logger.Printf("Error generating JWT: %v", err)
 		c.JSON(500, gin.H{"error": "Failed to generate token"})
 		return
 	}
@@ -51,13 +50,13 @@ func (a *AuthController) SignUp(c *gin.Context) {
 	var newUser models.User
 
 	if err := c.ShouldBindJSON(&newUser); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid Credentials"})
+		c.JSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	hashedPassword, err := utils.HashPassword(newUser.Password)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid Password"})
+		c.JSON(400, gin.H{"error": "Failed to hash password"})
 	}
 	newUser.Password = hashedPassword
 

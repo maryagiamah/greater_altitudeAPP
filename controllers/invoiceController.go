@@ -26,7 +26,6 @@ func (i *InvoiceController) GetInvoice(c *gin.Context) {
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Invoice: %s", invoice.Description)
 	c.JSON(200, gin.H{"invoice": invoice})
 }
 
@@ -49,19 +48,21 @@ func (i *InvoiceController) CreateInvoice(c *gin.Context) {
 	var newInvoice models.Invoice
 
 	if err := c.ShouldBindJSON(&newInvoice); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newInvoice)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Invoice"})
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Invoice Created with ID: %d", newInvoice.ID)
-	c.JSON(201, gin.H{"ID": newInvoice.ID})
+	c.JSON(201, gin.H{
+		"message": "Invoice created successfully",
+		"ID":      newInvoice.ID,
+	})
 }
 
 func (i *InvoiceController) UpdateInvoice(c *gin.Context) {
@@ -75,7 +76,7 @@ func (i *InvoiceController) UpdateInvoice(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
@@ -90,13 +91,14 @@ func (i *InvoiceController) UpdateInvoice(c *gin.Context) {
 	result := utils.H.DB.Model(&invoice).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update invoice"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated invoice with ID: %d", invoice.ID)
-	c.JSON(200, gin.H{"ID": invoice.ID})
+	c.JSON(200, gin.H{
+		"message": "Invoice updated successfully",
+		"ID":      invoice.ID,
+	})
 }
 
 func (i *InvoiceController) DeleteInvoice(c *gin.Context) {
@@ -119,7 +121,7 @@ func (i *InvoiceController) DeleteInvoice(c *gin.Context) {
 		c.AbortWithStatusJSON(404, gin.H{"error": "Invoice not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Invoice with ID: %s", id)
+
 	c.JSON(200, gin.H{"message": "Invoice deleted successfully"})
 }
 
@@ -143,12 +145,12 @@ func (i *InvoiceController) MakePayment(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&newPayment); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.Association("Payments").Append(newPayment).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add payment to invoice"})
+		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 	}
 
 	c.JSON(200, gin.H{"message": "Payment succesfully added to invoice"})

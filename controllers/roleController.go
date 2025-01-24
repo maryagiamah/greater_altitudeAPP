@@ -143,13 +143,14 @@ func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&newPermission); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON"})
 		return
 	}
 
-	if err := utils.H.DB.Association("Permissions").Append(newPermission).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add permision to role"})
+	if err := utils.H.DB.Model(&role).Association("Permissions").Append(&newPermission).Error; err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add permission to role"})
+		return
 	}
 
-	c.JSON(200, gin.H{"message": "Permission succesfully added to role"})
+	c.JSON(200, gin.H{"message": "Permission successfully added to role"})
 }

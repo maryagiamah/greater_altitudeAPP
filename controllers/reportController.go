@@ -124,7 +124,43 @@ func (r *ReportController) DeleteReport(c *gin.Context) {
 }
 
 func (r *ReportController) GetPupilReports(c *gin.Context) {
+	pupilId := c.Param("pupilId")
+	var report []models.Report
+
+	if pupilId == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+
+	if err := utils.H.DB.Where("pupil_id = ?", pupilId).Find(&report).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+	utils.H.Logger.Printf("Fetched Report: %s", report)
+	c.JSON(200, gin.H{"pupil_reports": report})
 }
 
 func (r *ReportController) GetTeacherReports(c *gin.Context) {
+	teacherId := c.Param("teacherId")
+	var report []models.Report
+
+	if teacherId == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+
+	if err := utils.H.DB.Where("teacher_id = ?", teacherId).Find(&report).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+	utils.H.Logger.Printf("Fetched Report: %s", report)
+	c.JSON(200, gin.H{"teacher_reports": report})
 }

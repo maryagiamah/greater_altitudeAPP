@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
@@ -33,8 +35,12 @@ func createDBHandler() (*dbHandler, error) {
 		return nil, fmt.Errorf("Can't connect to database: %w", err)
 	}
 
+	rdb, err := createRedisConnect()
+	if err != nil {
+		log.Fatalf("Error initializing Redis: %v", err)
+	}
 	logger := createNewLogger()
-	rdb := createRedisConnect()
+
 	return &dbHandler{DB: db, Logger: logger, RDB: rdb}, nil
 }
 
@@ -42,13 +48,34 @@ func createNewLogger() *log.Logger {
 	return log.New(os.Stdout, "[DBHandler] ", log.LstdFlags)
 }
 
-func createRedisConnect() *redis.Client {
+func createRedisConnect() (*redis.Client, error) {
+	addr := os.Getenv("REDIS_ADDR")
+	if addr == "" {
+		addr = "localhost:6379"
+	}
+
+	password := os.Getenv("REDIS_PASSWORD")
+
+	db := 0
+	if dbEnv := os.Getenv("REDIS_DB"); dbEnv != "" {
+		parsedDB, err := strconv.Atoi(dbEnv)
+		if err == nil {
+			db = parsedDB
+		}
+	}
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     addr,
+		Password: password,
+		DB:       db,
 	})
-	return rdb
+
+	_, err := rdb.Ping(context.Background()).Result()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to connect to Redis: %w", err)
+	}
+
+	return rdb, nil
 }
 
 func InitDB() {
@@ -59,7 +86,7 @@ func InitDB() {
 
 	H, err = createDBHandler()
         if err != nil {
-                log.Fatal("Cannot connect to database")
+		log.Fatalf("Cannot connect to database: %v", err)
         }
 
         log.Println("Database handler Initialized successfully")
@@ -79,8 +106,9 @@ func InitDB() {
 		&models.Report{},
 		&models.Role{},
 		&models.Permission{},
+		"role_permissions",
         ); err != nil {
-                log.Fatal("Failed to drop tables: ", err)
+                log.Fatalf("Failed to drop tables: %v", err)
         }
 
         if err := H.DB.AutoMigrate(
@@ -99,7 +127,7 @@ func InitDB() {
 		&models.Role{},
 		&models.Permission{},
         ); err != nil {
-                H.Logger.Fatal("Failed to migrate tables: ", err)
+                H.Logger.Fatalf("Failed to migrate tables: %v", err)
         }
 
         hashedPassword, err := HashPassword(os.Getenv("ADMIN_PWD"))
@@ -114,7 +142,7 @@ func InitDB() {
         }
 
         if err := H.DB.Create(&adminUser).Error; err != nil {
-                log.Fatal("Failed to create admin user: ", err)
+                log.Fatalf("Failed to create admin user: %v", err)
         }
         H.Logger.Println("Database migration completed successfully")
 }
@@ -123,10 +151,10 @@ func CloseDB() {
         sqlDB, err := H.DB.DB()
 
         if err != nil {
-                log.Fatal("Failed to get database: ", err)
+                log.Fatalf("Failed to get database: %v", err)
         }
 
         if err := sqlDB.Close(); err != nil {
-                log.Fatal("Failed to close database: ", err)
+                log.Fatalf("Failed to close database: %v", err)
         }
 }

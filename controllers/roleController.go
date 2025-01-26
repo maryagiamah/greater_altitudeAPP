@@ -132,8 +132,7 @@ func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
 		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
 		return
 	}
-
-	if err := utils.H.DB.First(&role, id).Error; err != nil {
+	if err := utils.H.DB.Preload("Permissions").First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
 		} else {
@@ -143,14 +142,34 @@ func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&newPermission); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid JSON"})
+		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
 		return
 	}
-
-	if err := utils.H.DB.Model(&role).Association("Permissions").Append(&newPermission).Error; err != nil {
+	if err := utils.H.DB.Model(&role).Association("Permissions").Append(newPermission).Error; err != nil {
+		utils.H.Logger.Print(err)
 		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add permission to role"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Permission successfully added to role"})
+	c.JSON(200, gin.H{"message": "Permission succesfully added to role"})
+}
+
+func (r *RoleController) GetPermissionsInRole(c *gin.Context) {
+	id := c.Param("id")
+	var role models.Role
+
+	if id == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+	if err := utils.H.DB.Preload("Permissions").First(&role, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	c.JSON(200, gin.H{"role_permissions": role.Permissions})
 }

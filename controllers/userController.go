@@ -80,6 +80,23 @@ func (u *UserController) GetAllParents(c *gin.Context) {
 }
 
 func (u *UserController) GetAuthenticatedUser(c *gin.Context) {
+	id := c.GetUint("userId")
+	var user models.User
+
+	if id == 0 {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+	if err := utils.H.DB.First(&user, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+	utils.H.Logger.Printf("Fetched User: %s", user.Email)
+	c.JSON(200, gin.H{"user": user})
 }
 
 func (u *UserController) CreateUser(c *gin.Context) {

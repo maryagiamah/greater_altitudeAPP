@@ -6,12 +6,14 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
-	"gorm.io/gorm"
 	"github.com/redis/go-redis/v9"
-	"greaterAltitudeapp/models"
 	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"greaterAltitudeapp/models"
 )
 
 type dbHandler struct {
@@ -28,8 +30,17 @@ func createDBHandler() (*dbHandler, error) {
 	db_name := os.Getenv("DB_NAME")
 	db_passwd := os.Getenv("DB_PASSWORD")
 
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logger.Info, // Log level
+			Colorful:                  true,
+		},
+	)
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s", db_host, db_user, db_passwd, db_name)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger})
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't connect to database: %w", err)
@@ -79,82 +90,82 @@ func createRedisConnect() (*redis.Client, error) {
 }
 
 func InitDB() {
-        err := godotenv.Load()
-        if err != nil {
-                log.Fatal("Error loading .env file")
-        }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	H, err = createDBHandler()
-        if err != nil {
+	if err != nil {
 		log.Fatalf("Cannot connect to database: %v", err)
-        }
+	}
 
-        log.Println("Database handler Initialized successfully")
+	log.Println("Database handler Initialized successfully")
 
-        if err := H.DB.Migrator().DropTable(
-                &models.User{},
+	if err := H.DB.Migrator().DropTable(
+		&models.User{},
 		&models.Message{},
-                &models.Parent{},
-                &models.Program{},
+		&models.Parent{},
+		&models.Program{},
 		&models.Activity{},
-                &models.Class{},
-                &models.Pupil{},
+		&models.Class{},
+		&models.Pupil{},
 		&models.Invoice{},
 		&models.Payment{},
 		&models.Event{},
-                &models.Staff{},
+		&models.Staff{},
 		&models.Report{},
 		&models.Role{},
 		&models.Permission{},
 		"role_permissions",
-        ); err != nil {
-                log.Fatalf("Failed to drop tables: %v", err)
-        }
+	); err != nil {
+		log.Fatalf("Failed to drop tables: %v", err)
+	}
 
-        if err := H.DB.AutoMigrate(
-                &models.User{},
+	if err := H.DB.AutoMigrate(
+		&models.User{},
 		&models.Message{},
-                &models.Parent{},
-                &models.Program{},
+		&models.Parent{},
+		&models.Program{},
 		&models.Activity{},
-                &models.Class{},
-                &models.Pupil{},
+		&models.Class{},
+		&models.Pupil{},
 		&models.Invoice{},
 		&models.Payment{},
-                &models.Event{},
-                &models.Staff{},
+		&models.Event{},
+		&models.Staff{},
 		&models.Report{},
 		&models.Role{},
 		&models.Permission{},
-        ); err != nil {
-                H.Logger.Fatalf("Failed to migrate tables: %v", err)
-        }
+	); err != nil {
+		H.Logger.Fatalf("Failed to migrate tables: %v", err)
+	}
 
-        hashedPassword, err := HashPassword(os.Getenv("ADMIN_PWD"))
-        if err != nil {
-                log.Fatalf("Error hashing password: %v", err)
-        }
-        adminUser := models.User{
-                Email:    os.Getenv("ADMIN_EMAIL"),
-                Password: hashedPassword,
-                Role:     "admin",
-                Mobile:   os.Getenv("ADMIN_MOBILE"),
-        }
+	hashedPassword, err := HashPassword(os.Getenv("ADMIN_PWD"))
+	if err != nil {
+		log.Fatalf("Error hashing password: %v", err)
+	}
+	adminUser := models.User{
+		Email:    os.Getenv("ADMIN_EMAIL"),
+		Password: hashedPassword,
+		Role:     "admin",
+		Mobile:   os.Getenv("ADMIN_MOBILE"),
+	}
 
-        if err := H.DB.Create(&adminUser).Error; err != nil {
-                log.Fatalf("Failed to create admin user: %v", err)
-        }
-        H.Logger.Println("Database migration completed successfully")
+	if err := H.DB.Create(&adminUser).Error; err != nil {
+		log.Fatalf("Failed to create admin user: %v", err)
+	}
+	H.Logger.Println("Database migration completed successfully")
 }
 
 func CloseDB() {
-        sqlDB, err := H.DB.DB()
+	sqlDB, err := H.DB.DB()
 
-        if err != nil {
-                log.Fatalf("Failed to get database: %v", err)
-        }
+	if err != nil {
+		log.Fatalf("Failed to get database: %v", err)
+	}
 
-        if err := sqlDB.Close(); err != nil {
-                log.Fatalf("Failed to close database: %v", err)
-        }
+	if err := sqlDB.Close(); err != nil {
+		log.Fatalf("Failed to close database: %v", err)
+	}
 }

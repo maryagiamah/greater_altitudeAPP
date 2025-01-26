@@ -3,10 +3,10 @@ package utils
 import (
 	"context"
 	"fmt"
-	"greaterAltitudeapp/models"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"greaterAltitudeapp/models"
 	"os"
 	"time"
 )
@@ -42,9 +42,9 @@ func ValidateJWT(tokenString string) (*jwt.MapClaims, error) {
 	}
 
 	userId, ok := claims["userId"].(uint)
-        if !ok {
-                return nil, fmt.Errorf("missing or invalid 'userId' claim")
-        }
+	if !ok {
+		return nil, fmt.Errorf("missing or invalid 'userId' claim")
+	}
 
 	if !ActiveUser(userId) {
 		return nil, fmt.Errorf("Account is not active")
@@ -92,12 +92,12 @@ func IsJWTBlacklisted(checkJTI string) bool {
 }
 
 func ActiveUser(userId uint) bool {
-        var user models.User
+	var user models.User
 
-        result := H.DB.First(&user, userId)
-        if result.Error != nil {
-            return false
-        }
+	result := H.DB.First(&user, userId)
+	if result.Error != nil {
+		return false
+	}
 
-        return user.IsActive == true
+	return user.IsActive == true
 }

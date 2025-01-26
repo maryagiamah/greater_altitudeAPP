@@ -8,6 +8,7 @@ import (
 
 func ProgramServices(rg *gin.RouterGroup) {
 	programController := &controllers.ProgramController{}
+	activityController := &controllers.ActivityController{}
 
 	program := rg.Group("/programs", middleware.AuthMiddleware())
 	{
@@ -22,6 +23,15 @@ func ProgramServices(rg *gin.RouterGroup) {
 		program.POST("/:id/class", programController.AddClassToProgram)
 		program.POST("/:id/activity", programController.AddActivityToProgram)
 		program.DELETE("/activities/:id", programController.DeleteActivity)
+	}
+
+	activity := rg.Group("/activity", middleware.AuthMiddleware())
+	{
+		activity.POST("/", activityController.CreateActivity)
+		activity.GET("/", activityController.GetAllActivities)
+		activity.GET("/:id", activityController.GetActivity)
+		activity.PUT("/:id", activityController.UpdateActivity)
+		activity.DELETE("/:id", activityController.DeleteActivity)
 	}
 
 }

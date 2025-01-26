@@ -155,3 +155,23 @@ func (i *InvoiceController) MakePayment(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Payment succesfully added to invoice"})
 }
+
+func (i *InvoiceController) GetInvoicePayments(c *gin.Context) {
+	id := c.Param("id")
+	var invoice models.Invoice
+
+	if id == "" {
+		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		return
+	}
+	if err := utils.H.DB.Preload("Payments").First(&invoice, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.AbortWithStatusJSON(404, gin.H{"error": "Invoice not found"})
+		} else {
+			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	c.JSON(200, gin.H{"invoice_payments": invoice.Payments})
+}

@@ -15,6 +15,7 @@ func RegisterBillingServices(rg *gin.RouterGroup) {
 		invoice.GET("/", invoiceController.GetAllInvoices)
 		invoice.GET("/:id", invoiceController.GetInvoice)
 		invoice.POST("/", invoiceController.CreateInvoice)
+		invoice.GET("/:id/payments", invoiceController.GetInvoicePayments)
 		invoice.POST("/:id/payments", invoiceController.MakePayment)
 		invoice.PUT("/:id", invoiceController.UpdateInvoice)
 		invoice.DELETE("/:id", invoiceController.DeleteInvoice)

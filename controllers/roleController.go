@@ -147,7 +147,7 @@ func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
 		return
 	}
 	if err := utils.H.DB.Model(&role).Association("Permissions").Append(newPermission).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": err})
+		c.AbortWithStatusJSON(500, gin.H{"error": "Cannot add permissions to role"})
 		return
 	}
 

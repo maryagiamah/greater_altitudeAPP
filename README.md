@@ -41,3 +41,16 @@ Greater Altitude is a school management system designed to enhance and streamlin
 ```bash
 go run main.go
 
+# API Documentation
+
+## Authentication Endpoints
+
+### POST /login
+**Description**: Logs in a user by providing the correct credentials.
+
+**Request Body**:
+```json
+{
+  "email": "user@example.com",
+  "password": "userpassword"
+}

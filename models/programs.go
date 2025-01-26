@@ -17,8 +17,8 @@ type Program struct {
 
 type Activity struct {
 	gorm.Model
-	ProgramID   uint    `json:"curriculumId" gorm:"not null"`
+	ProgramID   uint    `json:"programId" gorm:"not null"`
 	Name        string  `gorm:"not null" json:"name"`
-	AgeGroup    string  `gorm:"not null" json:"age_group"`
+	AgeGroup    string  `gorm:"not null" json:"ageGroup"`
 	Description *string `gorm:"not null" json:"description,omitempty"`
 }

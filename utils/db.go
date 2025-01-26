@@ -40,7 +40,10 @@ func createDBHandler() (*dbHandler, error) {
 	)
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s", db_host, db_user, db_passwd, db_name)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+		TranslateError: true,
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't connect to database: %w", err)

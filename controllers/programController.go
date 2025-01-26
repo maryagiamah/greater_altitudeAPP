@@ -220,7 +220,7 @@ func (p *ProgramController) AddActivityToProgram(c *gin.Context) {
 		return
 	}
 
-	if err := utils.H.DB.Association("Activities").Append(newActivity).Error; err != nil {
+	if err := utils.H.DB.Model(&program).Association("Activities").Append(newActivity).Error; err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add activity to program"})
 	}
 

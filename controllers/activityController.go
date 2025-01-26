@@ -39,7 +39,7 @@ func (a *ActivityController) GetAllActivities(c *gin.Context) {
 	}
 
 	if len(activities) == 0 {
-		c.JSON(404, gin.H{"error": "No events found"})
+		c.JSON(404, gin.H{"error": "No activities found"})
 		return
 	}
 	c.JSON(200, gin.H{"activities": activities})
@@ -61,7 +61,7 @@ func (a *ActivityController) CreateActivity(c *gin.Context) {
 	}
 
 	c.JSON(201, gin.H{
-		"message": "Event created successfully",
+		"message": "Activity created successfully",
 		"ID":      newActivity.ID,
 	})
 }

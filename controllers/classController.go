@@ -148,7 +148,7 @@ func (cl *ClassController) AddPupilToClass(c *gin.Context) {
 		return
 	}
 
-	if err := utils.H.DB.Association("Pupils").Append(newPupil).Error; err != nil {
+	if err := utils.H.DB.Model(&class).Association("Pupils").Append(newPupil).Error; err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 	}
 
@@ -179,7 +179,7 @@ func (cl *ClassController) AssignTeacherToClass(c *gin.Context) {
 		return
 	}
 
-	if err := utils.H.DB.Association("Teachers").Append(newTeacher).Error; err != nil {
+	if err := utils.H.DB.Model(&class).Association("Teachers").Append(newTeacher).Error; err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 	}
 

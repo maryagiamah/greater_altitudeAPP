@@ -57,7 +57,7 @@ func (a *AuthController) SignUp(c *gin.Context) {
 	newUser.Password = hashedPassword
 
 	if err := utils.H.DB.Create(&newUser).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create user"})
+		c.JSON(500, gin.H{"error": "Internal Server Error"})
 		return
 	}
 

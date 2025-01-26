@@ -149,7 +149,7 @@ func (i *InvoiceController) MakePayment(c *gin.Context) {
 		return
 	}
 
-	if err := utils.H.DB.Association("Payments").Append(newPayment).Error; err != nil {
+	if err := utils.H.DB.Model(&invoice).Association("Payments").Append(newPayment).Error; err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
 	}
 

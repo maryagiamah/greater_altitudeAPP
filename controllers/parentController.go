@@ -91,7 +91,7 @@ func (p *ParentController) AddPupilToParent(c *gin.Context) {
 		return
 	}
 
-	if err := utils.H.DB.Association("Pupils").Append(newPupil).Error; err != nil {
+	if err := utils.H.DB.Model(&parent).Association("Pupils").Append(newPupil).Error; err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add pupil to parent"})
 	}
 

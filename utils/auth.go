@@ -74,8 +74,13 @@ func InvalidateJWT(tokenString string) error {
 	}
 
 	key := "Blacklisted:" + (*claims)["jti"].(string)
+
+	fmt.Print(key)
 	exp := time.Unix(int64((*claims)["exp"].(float64)), 0)
 	ttl := time.Until(exp)
+
+	 fmt.Print(exp)
+	 fmt.Print(ttl)
 
 	return H.RDB.Set(ctx, key, true, ttl).Err()
 }

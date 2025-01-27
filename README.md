@@ -178,9 +178,6 @@ go run main.go
 ## Important Notes
 1. Areas marked as "Work in Progress" are not fully functional and should not be relied upon until completed. 2. For detailed information regarding request body types and examples, please refer to the following Postman link: [Postman API Documentation](https://web.postman.co/workspace/Nursery-School-communication-sy~29174a5e-9cfe-4766-bf7d-ae3bdc1948e4/overview).
 
-f you have any questions or need further clarification, please feel free to reach out:
+If you have any questions or need further clarification, please feel free to reach out:
 GitHub Username: maragiamah
 Email: under20techi@gmail.com
-=======
-
->>>>>>> 43b77fda04f521cd28118b480eabb3f72d0d5501

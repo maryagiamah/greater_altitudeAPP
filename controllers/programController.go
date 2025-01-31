@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
@@ -14,54 +15,59 @@ func (p *ProgramController) GetProgram(c *gin.Context) {
 	var program models.Program
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&program, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Program: %s %s", program.Name)
-	c.JSON(200, gin.H{"program": program})
+
+	c.JSON(http.StatusOK, gin.H{
+		"program": program,
+		"message": "Program created",
+	})
 }
 
 func (p *ProgramController) GetAllPrograms(c *gin.Context) {
 	var programs []models.Program
 
 	if err := utils.H.DB.Find(&programs).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(programs) == 0 {
-		c.JSON(404, gin.H{"error": "No program found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No program found"})
 		return
 	}
-	c.JSON(200, gin.H{"programs": programs})
+	c.JSON(http.StatusOK, gin.H{"programs": programs})
 }
 
 func (p *ProgramController) CreateProgram(c *gin.Context) {
 	var newProgram models.Program
 
 	if err := c.ShouldBindJSON(&newProgram); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newProgram)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Program"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Program"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Program Created with ID: %d", newProgram.ID)
-	c.JSON(201, gin.H{"ID": newProgram.ID})
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":      newProgram.ID,
+		"message": "Program created",
+	})
 }
 
 func (p *ProgramController) UpdateProgram(c *gin.Context) {
@@ -70,33 +76,34 @@ func (p *ProgramController) UpdateProgram(c *gin.Context) {
 	var updatedFields models.Program
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&program, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 	result := utils.H.DB.Model(&program).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update program"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to  update program"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated program with ID: %d", program.ID)
-	c.JSON(200, gin.H{"ID": program.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID":      program.ID,
+		"message": "Program updated",
+	})
 }
 
 func (p *ProgramController) DeleteProgram(c *gin.Context) {
@@ -104,23 +111,23 @@ func (p *ProgramController) DeleteProgram(c *gin.Context) {
 	var program models.Program
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&program, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Program with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Program deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Program deleted successfully"})
 }
 
 func (p *ProgramController) GetProgramClasses(c *gin.Context) {
@@ -128,20 +135,20 @@ func (p *ProgramController) GetProgramClasses(c *gin.Context) {
 	var program models.Program
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Preload("Classes").First(&program, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Program: %s %s", program.Name)
-	c.JSON(200, gin.H{"program_classes": program.Classes})
+
+	c.JSON(http.StatusOK, gin.H{"program_classes": program.Classes})
 }
 
 func (p *ProgramController) GetProgramActivities(c *gin.Context) {
@@ -149,20 +156,18 @@ func (p *ProgramController) GetProgramActivities(c *gin.Context) {
 	var program models.Program
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Preload("Activities").First(&program, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
-		return
 	}
-	utils.H.Logger.Printf("Fetched Program: %s %s", program.Name)
-	c.JSON(200, gin.H{"program_activities": program.Activities})
+	c.JSON(http.StatusOK, gin.H{"program_activities": program.Activities})
 }
 
 func (p *ProgramController) AddClassToProgram(c *gin.Context) {
@@ -171,29 +176,29 @@ func (p *ProgramController) AddClassToProgram(c *gin.Context) {
 	var newClass models.Class
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&program, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
 	if err := c.ShouldBindJSON(&newClass); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.Association("Classes").Append(newClass).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add class to program"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add class to program"})
 	}
 
-	c.JSON(200, gin.H{"message": "Class succesfully added to program"})
+	c.JSON(http.StatusOK, gin.H{"message": "Class succesfully added to program"})
 }
 
 func (p *ProgramController) AddActivityToProgram(c *gin.Context) {
@@ -202,29 +207,29 @@ func (p *ProgramController) AddActivityToProgram(c *gin.Context) {
 	var newActivity models.Activity
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&program, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Program not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Program not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
 	if err := c.ShouldBindJSON(&newActivity); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.Model(&program).Association("Activities").Append(newActivity).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add activity to program"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add activity to program"})
 	}
 
-	c.JSON(200, gin.H{"message": "Activity succesfully added to program"})
+	c.JSON(http.StatusOK, gin.H{"message": "Activity succesfully added to program"})
 }
 
 func (p *ProgramController) DeleteActivity(c *gin.Context) {

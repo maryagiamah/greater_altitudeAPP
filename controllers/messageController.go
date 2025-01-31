@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
+	"net/http"
 )
 
 type MessageController struct{}
@@ -15,15 +16,15 @@ func (m *MessageController) GetInboxMessages(c *gin.Context) {
 	var messages []models.Message
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Where("receiver_id = ?", userId).Find(&messages).Error; err != nil {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Could not fetch messages"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Failed to fetch messages"})
 		return
 	}
-	c.JSON(200, gin.H{"messages": messages})
+	c.JSON(http.StatusOK, gin.H{"messages": messages})
 }
 
 func (m *MessageController) GetSentMessages(c *gin.Context) {
@@ -32,22 +33,22 @@ func (m *MessageController) GetSentMessages(c *gin.Context) {
 	var messages []models.Message
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Where("receiver_id = ?", userId).Find(&messages).Error; err != nil {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Could not fetch messages"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch messages"})
 		return
 	}
-	c.JSON(200, gin.H{"messages": messages})
+	c.JSON(http.StatusCreated, gin.H{"messages": messages})
 }
 
 func (m *MessageController) CreateMessage(c *gin.Context) {
 	var newMessage models.Message
 
 	if err := c.ShouldBindJSON(&newMessage); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
@@ -56,12 +57,11 @@ func (m *MessageController) CreateMessage(c *gin.Context) {
 	result := utils.H.DB.Create(&newMessage)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Could not send message"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to send message"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Message Created with ID: %d", newMessage.ID)
-	c.JSON(201, gin.H{"message": "Message sent successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Message sent"})
 }
 
 func (m *MessageController) UpdateMessage(c *gin.Context) {
@@ -70,38 +70,39 @@ func (m *MessageController) UpdateMessage(c *gin.Context) {
 	var updatedFields models.Message
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&message, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Message not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
 	if message.SenderID != c.GetUint("UserId") {
-		c.AbortWithStatusJSON(403, gin.H{"error": "User Can't update this message"})
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User can't update this message"})
 	}
 
 	result := utils.H.DB.Model(&message).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Can't update message"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to  update message"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated message with ID: %d", message.ID)
-	c.JSON(200, gin.H{"ID": message.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Message updated",
+		"ID":      message.ID,
+	})
 }
 
 func (m *MessageController) DeleteMessage(c *gin.Context) {
@@ -109,23 +110,23 @@ func (m *MessageController) DeleteMessage(c *gin.Context) {
 	var message models.Message
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&message, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete message"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Message not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted message with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Message deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Message deleted successfully"})
 }
 
 func (m *MessageController) MarkMessageAsRead(c *gin.Context) {
@@ -133,15 +134,15 @@ func (m *MessageController) MarkMessageAsRead(c *gin.Context) {
 	var message models.Message
 
 	if err := utils.H.DB.First(&message, id).Error; err != nil {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Message not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		return
 	}
 
 	message.IsRead = true
 	if err := utils.H.DB.Save(&message).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Could not update message"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update message"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Message marked as read"})
+	c.JSON(http.StatusOK, gin.H{"message": "Message marked as read"})
 }

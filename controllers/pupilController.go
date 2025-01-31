@@ -6,6 +6,7 @@ import (
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
 	"log"
+	"net/http"
 )
 
 type PupilController struct{}
@@ -15,35 +16,35 @@ func (p *PupilController) GetPupil(c *gin.Context) {
 	var pupil models.Pupil
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&pupil, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Pupil not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Pupil not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Pupil: %s %s", pupil.FirstName, pupil.LastName)
-	c.JSON(200, gin.H{"pupil": pupil})
+
+	c.JSON(http.StatusOK, gin.H{"pupil": pupil})
 }
 
 func (p *PupilController) GetAllPupils(c *gin.Context) {
 	var pupils []models.Pupil
 
 	if err := utils.H.DB.Find(&pupils).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(pupils) == 0 {
-		c.JSON(404, gin.H{"error": "No pupil found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No pupil found"})
 		return
 	}
-	c.JSON(200, gin.H{"pupils": pupils})
+	c.JSON(http.StatusOK, gin.H{"pupils": pupils})
 }
 
 func (p *PupilController) CreatePupil(c *gin.Context) {
@@ -51,19 +52,21 @@ func (p *PupilController) CreatePupil(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&newPupil); err != nil {
 		log.Print(err)
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newPupil)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Pupil"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Pupil"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Pupil Created with ID: %d", newPupil.ID)
-	c.JSON(201, gin.H{"ID": newPupil.ID})
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":      newPupil.ID,
+		"message": "Pupil created",
+	})
 }
 
 func (p *PupilController) UpdatePupil(c *gin.Context) {
@@ -72,33 +75,34 @@ func (p *PupilController) UpdatePupil(c *gin.Context) {
 	var updatedFields models.Pupil
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&pupil, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Pupil not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Pupil not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 	result := utils.H.DB.Model(&pupil).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update pupil"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Failed to update pupil"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated pupil with ID: %d", pupil.ID)
-	c.JSON(200, gin.H{"ID": pupil.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID":      pupil.ID,
+		"message": "Pupil updated",
+	})
 }
 
 func (p *PupilController) DeletePupil(c *gin.Context) {
@@ -106,23 +110,23 @@ func (p *PupilController) DeletePupil(c *gin.Context) {
 	var pupil models.Pupil
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&pupil, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete pupil"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Pupil not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Pupil not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Pupil with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Pupil deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Pupil deleted successfully"})
 }
 
 func (p *PupilController) GetAllClasses(c *gin.Context) {

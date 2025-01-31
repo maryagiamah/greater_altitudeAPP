@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"greaterAltitudeapp/models"
 )
 
@@ -30,20 +27,8 @@ func createDBHandler() (*dbHandler, error) {
 	db_name := os.Getenv("DB_NAME")
 	db_passwd := os.Getenv("DB_PASSWORD")
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second, // Slow SQL threshold
-			LogLevel:                  logger.Info, // Log level
-			Colorful:                  true,
-		},
-	)
-
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s", db_host, db_user, db_passwd, db_name)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-		TranslateError: true,
-	})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't connect to database: %w", err)
@@ -63,25 +48,11 @@ func createNewLogger() *log.Logger {
 }
 
 func createRedisConnect() (*redis.Client, error) {
-	addr := os.Getenv("REDIS_ADDR")
-	if addr == "" {
-		addr = "localhost:6379"
-	}
-
-	password := os.Getenv("REDIS_PASSWORD")
-
-	db := 0
-	if dbEnv := os.Getenv("REDIS_DB"); dbEnv != "" {
-		parsedDB, err := strconv.Atoi(dbEnv)
-		if err == nil {
-			db = parsedDB
-		}
-	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
+		Addr: "localhost:6379",
+		Password: "",
+		DB:       0,
 	})
 
 	_, err := rdb.Ping(context.Background()).Result()

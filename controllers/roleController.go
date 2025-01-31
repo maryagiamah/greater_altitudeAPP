@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
+	"net/http"
 )
 
 type RoleController struct{}
@@ -14,54 +15,56 @@ func (r *RoleController) GetRole(c *gin.Context) {
 	var role models.Role
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Role: %s %s", role.Name)
-	c.JSON(200, gin.H{"role": role})
+
+	c.JSON(http.StatusOK, gin.H{"role": role})
 }
 
 func (r *RoleController) GetRoles(c *gin.Context) {
 	var roles []models.Role
 
 	if err := utils.H.DB.Find(&roles).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(roles) == 0 {
-		c.JSON(404, gin.H{"error": "No roles found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No roles found"})
 		return
 	}
-	c.JSON(200, gin.H{"roles": roles})
+	c.JSON(http.StatusOK, gin.H{"roles": roles})
 }
 
 func (r *RoleController) CreateRole(c *gin.Context) {
 	var newRole models.Role
 
 	if err := c.ShouldBindJSON(&newRole); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newRole)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create role"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create role"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Role Created with ID: %d", newRole.ID)
-	c.JSON(201, gin.H{"ID": newRole.ID})
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":      newRole.ID,
+		"message": "Role created",
+	})
 }
 
 func (r *RoleController) UpdateRole(c *gin.Context) {
@@ -70,33 +73,31 @@ func (r *RoleController) UpdateRole(c *gin.Context) {
 	var updatedFields models.Role
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 	result := utils.H.DB.Model(&role).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update role"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update role"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated role with ID: %d", role.ID)
-	c.JSON(200, gin.H{"ID": role.ID})
+	c.JSON(http.StatusOK, gin.H{"ID": role.ID})
 }
 
 func (r *RoleController) DeleteRole(c *gin.Context) {
@@ -104,23 +105,23 @@ func (r *RoleController) DeleteRole(c *gin.Context) {
 	var role models.Role
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&role, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete role"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Role with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Role deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Role deleted successfully"})
 }
 
 func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
@@ -129,29 +130,28 @@ func (r *RoleController) UpdateRolePermissions(c *gin.Context) {
 	var newPermission models.Permission
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 	if err := utils.H.DB.Preload("Permissions").First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
-
 	if err := c.ShouldBindJSON(&newPermission); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 	if err := utils.H.DB.Model(&role).Association("Permissions").Append(newPermission).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Cannot add permissions to role"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add permissions to role"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Permission succesfully added to role"})
+	c.JSON(http.StatusOK, gin.H{"message": "Permission succesfully added to role"})
 }
 
 func (r *RoleController) GetPermissionsInRole(c *gin.Context) {
@@ -159,17 +159,17 @@ func (r *RoleController) GetPermissionsInRole(c *gin.Context) {
 	var role models.Role
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 	if err := utils.H.DB.Preload("Permissions").First(&role, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Role not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
-	c.JSON(200, gin.H{"role_permissions": role.Permissions})
+	c.JSON(http.StatusOK, gin.H{"role_permissions": role.Permissions})
 }

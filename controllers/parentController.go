@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
+	"net/http"
 )
 
 type ParentController struct{}
@@ -14,20 +15,20 @@ func (p *ParentController) GetParent(c *gin.Context) {
 	var parent models.Parent
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Preload("User").First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Parent not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Parent: %s %s", parent.User.FirstName, parent.User.LastName)
-	c.JSON(200, gin.H{"parent": parent})
+
+	c.JSON(http.StatusOK, gin.H{"parent": parent})
 
 }
 
@@ -35,15 +36,15 @@ func (p *ParentController) GetAllParents(c *gin.Context) {
 	var parents []models.Parent
 
 	if err := utils.H.DB.Find(&parents).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(parents) == 0 {
-		c.JSON(404, gin.H{"error": "No parent found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No parent found"})
 		return
 	}
-	c.JSON(200, gin.H{"parents": parents})
+	c.JSON(http.StatusOK, gin.H{"parents": parents})
 }
 
 func (p *ParentController) GetPupilsByParent(c *gin.Context) {
@@ -51,20 +52,20 @@ func (p *ParentController) GetPupilsByParent(c *gin.Context) {
 	var parent models.Parent
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Preload("Ward").First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Parent not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Parent: %s", parent.ID)
-	c.JSON(200, gin.H{"parent_wards": parent.Ward})
+
+	c.JSON(http.StatusOK, gin.H{"parent_wards": parent.Ward})
 }
 
 func (p *ParentController) AddPupilToParent(c *gin.Context) {
@@ -73,29 +74,29 @@ func (p *ParentController) AddPupilToParent(c *gin.Context) {
 	var newPupil models.Pupil
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Parent not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
 	if err := c.ShouldBindJSON(&newPupil); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.Model(&parent).Association("Pupils").Append(newPupil).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to add pupil to parent"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add pupil to parent"})
 	}
 
-	c.JSON(200, gin.H{"message": "Pupil succesfully added to parent"})
+	c.JSON(http.StatusOK, gin.H{"message": "Pupil succesfully added to parent"})
 }
 
 func (p *ParentController) CreateParent(c *gin.Context) {
@@ -103,24 +104,26 @@ func (p *ParentController) CreateParent(c *gin.Context) {
 	var user models.User
 
 	if err := c.ShouldBindJSON(&newParent); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&user, newParent.UserID).Error; err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "User row not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User row not found"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newParent)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Parent"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Parent"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Parent Created with ID: %d", newParent.ID)
-	c.JSON(201, gin.H{"ID": newParent.ID})
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":      newParent.ID,
+		"message": "Parent created",
+	})
 
 }
 
@@ -130,20 +133,20 @@ func (p *ParentController) UpdateParent(c *gin.Context) {
 	var updatedFields models.Parent
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&parent, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Parent not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
@@ -151,13 +154,14 @@ func (p *ParentController) UpdateParent(c *gin.Context) {
 	result := utils.H.DB.Model(&parent).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update parent"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update parent"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated parent with ID: %d", parent.ID)
-	c.JSON(200, gin.H{"ID": parent.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID":      parent.ID,
+		"message": "Parent updated",
+	})
 }
 
 func (p *ParentController) DeleteParent(c *gin.Context) {
@@ -165,21 +169,21 @@ func (p *ParentController) DeleteParent(c *gin.Context) {
 	var parent models.Parent
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&parent, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete parent"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Parent not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Parent not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Parent with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Parent deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Parent deleted successfully"})
 }

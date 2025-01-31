@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
+	"net/http"
 )
 
 type UserController struct{}
@@ -14,35 +15,35 @@ func (u *UserController) GetUser(c *gin.Context) {
 	var user models.User
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&user, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched User: %s", user.Email)
-	c.JSON(200, gin.H{"user": user})
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
 func (u *UserController) GetAllUsers(c *gin.Context) {
 	var users []models.User
 
 	if err := utils.H.DB.Find(&users).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(users) == 0 {
-		c.JSON(404, gin.H{"error": "No user found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No user found"})
 		return
 	}
-	c.JSON(200, gin.H{"users": users})
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
 func (u *UserController) GetUserProfile(c *gin.Context) {
@@ -52,30 +53,30 @@ func (u *UserController) GetAllStaffs(c *gin.Context) {
 	var users []models.User
 
 	if err := utils.H.DB.Where("role = ?", "staff").Find(&users).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(users) == 0 {
-		c.JSON(404, gin.H{"error": "No staff user found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No staff user found"})
 		return
 	}
-	c.JSON(200, gin.H{"users": users})
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
 func (u *UserController) GetAllParents(c *gin.Context) {
 	var users []models.User
 
 	if err := utils.H.DB.Where("role = ?", "parent").Find(&users).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(users) == 0 {
-		c.JSON(404, gin.H{"error": "No parent user found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No parent user found"})
 		return
 	}
-	c.JSON(200, gin.H{"users": users})
+	c.JSON(http.StatusOK, gin.H{"users": users})
 
 }
 
@@ -84,45 +85,19 @@ func (u *UserController) GetAuthenticatedUser(c *gin.Context) {
 	var user models.User
 
 	if id == 0 {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 	if err := utils.H.DB.First(&user, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched User: %s", user.Email)
-	c.JSON(200, gin.H{"user": user})
-}
 
-func (u *UserController) CreateUser(c *gin.Context) {
-	var newUser models.User
-
-	if err := c.ShouldBindJSON(&newUser); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
-		return
-	}
-
-	hashedPassword, err := utils.HashPassword(newUser.Password)
-
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid Password"})
-	}
-
-	newUser.Password = hashedPassword
-	result := utils.H.DB.Create(&newUser)
-
-	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create User"})
-		return
-	}
-
-	utils.H.Logger.Printf("New user Created with ID: %d", newUser.ID)
-	c.JSON(201, gin.H{"message": "User created Sucessfully"})
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
 func (u *UserController) UpdateUser(c *gin.Context) {
@@ -131,20 +106,20 @@ func (u *UserController) UpdateUser(c *gin.Context) {
 	var updatedFields models.User
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&user, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
@@ -152,7 +127,7 @@ func (u *UserController) UpdateUser(c *gin.Context) {
 	if updatedFields.Password != "" {
 		hashPassword, err := utils.HashPassword(updatedFields.Password)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Invalid Password"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Password"})
 			return
 		}
 		updatedFields.Password = hashPassword
@@ -162,13 +137,14 @@ func (u *UserController) UpdateUser(c *gin.Context) {
 	result := utils.H.DB.Model(&user).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update user"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated user with ID: %d", user.ID)
-	c.JSON(200, gin.H{"ID": user.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID":      user.ID,
+		"message": "User updated",
+	})
 }
 
 func (u *UserController) DeleteUser(c *gin.Context) {
@@ -176,23 +152,23 @@ func (u *UserController) DeleteUser(c *gin.Context) {
 	var user models.User
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&user, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted user with ID: %s", id)
-	c.JSON(200, gin.H{"message": "User deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
 func (u *UserController) ActivateUser(c *gin.Context) {
@@ -200,26 +176,26 @@ func (u *UserController) ActivateUser(c *gin.Context) {
 	var user models.User
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&user, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
 	user.IsActive = true
 	if err := utils.H.DB.Save(&user).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to activate user"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to activate user"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "User activated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "User activated successfully"})
 
 }
 
@@ -228,24 +204,24 @@ func (u *UserController) DeactivateUser(c *gin.Context) {
 	var user models.User
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&user, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "User not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 
 	user.IsActive = false
 	if err := utils.H.DB.Save(&user).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Failed to deactivate user"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to deactivate user"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "User deactivated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "User deactivated successfully"})
 }

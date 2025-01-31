@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
+	"net/http"
 )
 
 type ReportController struct{}
@@ -14,54 +15,56 @@ func (r *ReportController) GetReport(c *gin.Context) {
 	var report models.Report
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&report, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Report not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Report: %s", report.Type)
-	c.JSON(200, gin.H{"report": report})
+
+	c.JSON(http.StatusOK, gin.H{"report": report})
 }
 
 func (r *ReportController) GetAllReports(c *gin.Context) {
 	var reports []models.Report
 
 	if err := utils.H.DB.Find(&reports).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(reports) == 0 {
-		c.JSON(404, gin.H{"error": "No report found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No report found"})
 		return
 	}
-	c.JSON(200, gin.H{"reports": reports})
+	c.JSON(http.StatusOK, gin.H{"reports": reports})
 }
 
 func (r *ReportController) CreateReport(c *gin.Context) {
 	var newReport models.Report
 
 	if err := c.ShouldBindJSON(&newReport); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newReport)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Report"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Report"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Report Created with ID: %d", newReport.ID)
-	c.JSON(201, gin.H{"ID": newReport.ID})
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":      newReport.ID,
+		"message": "Report Created",
+	})
 }
 
 func (r *ReportController) UpdateReport(c *gin.Context) {
@@ -70,33 +73,34 @@ func (r *ReportController) UpdateReport(c *gin.Context) {
 	var updatedFields models.Report
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&report, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Report not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 	result := utils.H.DB.Model(&report).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update report"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update report"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated report with ID: %d", report.ID)
-	c.JSON(200, gin.H{"ID": report.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID":      report.ID,
+		"message": "Message updated",
+	})
 }
 
 func (r *ReportController) DeleteReport(c *gin.Context) {
@@ -104,23 +108,23 @@ func (r *ReportController) DeleteReport(c *gin.Context) {
 	var report models.Report
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&report, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Report not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Report with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Report deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Report deleted successfully"})
 }
 
 func (r *ReportController) GetPupilReports(c *gin.Context) {
@@ -128,20 +132,20 @@ func (r *ReportController) GetPupilReports(c *gin.Context) {
 	var report []models.Report
 
 	if pupilId == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Where("pupil_id = ?", pupilId).Find(&report).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Report not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Report: %s", report)
-	c.JSON(200, gin.H{"pupil_reports": report})
+
+	c.JSON(http.StatusOK, gin.H{"pupil_reports": report})
 }
 
 func (r *ReportController) GetTeacherReports(c *gin.Context) {
@@ -149,18 +153,18 @@ func (r *ReportController) GetTeacherReports(c *gin.Context) {
 	var report []models.Report
 
 	if teacherId == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.Where("teacher_id = ?", teacherId).Find(&report).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Report not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Report not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Report: %s", report)
-	c.JSON(200, gin.H{"teacher_reports": report})
+
+	c.JSON(http.StatusOK, gin.H{"teacher_reports": report})
 }

@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"greaterAltitudeapp/controllers"
+	"greaterAltitudeapp/middleware"
 )
 
 func RegisterAdminServices(rg *gin.RouterGroup) {
@@ -14,13 +15,13 @@ func RegisterAdminServices(rg *gin.RouterGroup) {
 	admin := rg.Group("/admin")
 	{
 		admin.POST("/login", authController.Login)
-		admin.DELETE("/logout", authController.Logout)
-		admin.POST("/signup", authController.SignUp)
-		admin.PUT("/users/:id/activate", userController.ActivateUser)
-		admin.PUT("/users/:id/deactivate", userController.DeactivateUser)
+		admin.DELETE("/logout", middleware.AuthMiddleware(), authController.Logout)
+		admin.POST("/signup", middleware.AuthMiddleware(), authController.SignUp)
+		admin.PUT("/users/:id/activate", middleware.AuthMiddleware(), userController.ActivateUser)
+		admin.PUT("/users/:id/deactivate", middleware.AuthMiddleware(), userController.DeactivateUser)
 
-		admin.GET("roles/:id", roleController.GetRole)
-		admin.GET("roles/", roleController.GetRoles)
+		admin.GET("/roles/:id", roleController.GetRole)
+		admin.GET("/roles/", roleController.GetRoles)
 		admin.POST("/roles", roleController.CreateRole)
 		admin.PUT("/roles/:id", roleController.UpdateRole)
 		admin.DELETE("/roles/:id", roleController.DeleteRole)

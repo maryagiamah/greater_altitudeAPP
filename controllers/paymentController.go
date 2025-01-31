@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"greaterAltitudeapp/models"
 	"greaterAltitudeapp/utils"
+	"net/http"
 )
 
 type PaymentController struct{}
@@ -14,54 +15,56 @@ func (p *PaymentController) GetPayment(c *gin.Context) {
 	var payment models.Payment
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := utils.H.DB.First(&payment, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Payment not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
-	utils.H.Logger.Printf("Fetched Payment: %s", payment.Reference)
-	c.JSON(200, gin.H{"payment": payment})
+
+	c.JSON(http.StatusOK, gin.H{"payment": payment})
 }
 
 func (p *PaymentController) GetAllPayments(c *gin.Context) {
 	var payments []models.Payment
 
 	if err := utils.H.DB.Find(&payments).Error; err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	if len(payments) == 0 {
-		c.JSON(404, gin.H{"error": "No payment found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No payment found"})
 		return
 	}
-	c.JSON(200, gin.H{"payments": payments})
+	c.JSON(http.StatusOK, gin.H{"payments": payments})
 }
 
 func (p *PaymentController) CreatePayment(c *gin.Context) {
 	var newPayment models.Payment
 
 	if err := c.ShouldBindJSON(&newPayment); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	result := utils.H.DB.Create(&newPayment)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't create Payment"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Payment"})
 		return
 	}
 
-	utils.H.Logger.Printf("New Payment Created with ID: %d", newPayment.ID)
-	c.JSON(201, gin.H{"ID": newPayment.ID})
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":      newPayment.ID,
+		"message": "Payment created",
+	})
 }
 
 func (p *PaymentController) UpdatePayment(c *gin.Context) {
@@ -70,33 +73,34 @@ func (p *PaymentController) UpdatePayment(c *gin.Context) {
 	var updatedFields models.Payment
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&updatedFields); err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Not a JSON"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	if err := utils.H.DB.First(&payment, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.AbortWithStatusJSON(404, gin.H{"error": "Payment not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		} else {
-			c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		}
 		return
 	}
 	result := utils.H.DB.Model(&payment).Updates(updatedFields)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "Can't update payment"})
-		utils.H.Logger.Printf("Update failed: %v", result.Error)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update payment"})
 		return
 	}
 
-	utils.H.Logger.Printf("Updated payment with ID: %d", payment.ID)
-	c.JSON(200, gin.H{"ID": payment.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID":      payment.ID,
+		"message": "Payment updated",
+	})
 }
 
 func (p *PaymentController) DeletePayment(c *gin.Context) {
@@ -104,21 +108,21 @@ func (p *PaymentController) DeletePayment(c *gin.Context) {
 	var payment models.Payment
 
 	if id == "" {
-		c.AbortWithStatusJSON(400, gin.H{"error": "ID cannot be empty"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
 
 	result := utils.H.DB.Delete(&payment, id)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(500, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete payment"})
 		return
 	}
 
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(404, gin.H{"error": "Payment not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		return
 	}
-	utils.H.Logger.Printf("Deleted Payment with ID: %s", id)
-	c.JSON(200, gin.H{"message": "Payment deleted successfully"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Payment deleted successfully"})
 }

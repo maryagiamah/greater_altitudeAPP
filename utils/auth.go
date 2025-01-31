@@ -19,8 +19,8 @@ func GenerateJWT(userID uint, role string) (string, error) {
 		"userId": userID,
 		"jti":    uuid.NewString(),
 		"role":   role,
-		"exp":    time.Now().Add(1 * time.Hour).Unix(),
-		"iat":    time.Now().Unix(),
+		"exp":    time.Now().UTC().Add(1 * time.Hour).Unix(),
+		"iat":    time.Now().UTC().Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
@@ -33,20 +33,22 @@ func ValidateJWT(tokenString string) (*jwt.MapClaims, error) {
 		return jwtSecret, nil
 	})
 	if err != nil || !token.Valid {
-		return nil, err
+		return nil, fmt.Errorf("Invalid token")
 	}
 
 	jti, ok := claims["jti"].(string)
 	if !ok {
+		panic(ok)
 		return nil, fmt.Errorf("missing or invalid 'jti' claim")
 	}
 
-	userId, ok := claims["userId"].(uint)
+	userId, ok := claims["userId"].(float64)
 	if !ok {
+		panic(ok)
 		return nil, fmt.Errorf("missing or invalid 'userId' claim")
 	}
 
-	if !ActiveUser(userId) {
+	if !ActiveUser(uint(userId)) {
 		return nil, fmt.Errorf("Account is not active")
 	}
 
@@ -75,14 +77,11 @@ func InvalidateJWT(tokenString string) error {
 
 	key := "Blacklisted:" + (*claims)["jti"].(string)
 
-	fmt.Print(key)
 	exp := time.Unix(int64((*claims)["exp"].(float64)), 0)
 	ttl := time.Until(exp)
 
-	 fmt.Print(exp)
-	 fmt.Print(ttl)
 
-	return H.RDB.Set(ctx, key, true, ttl).Err()
+	return H.RDB.Set(ctx, key, "true", ttl).Err()
 }
 
 func IsJWTBlacklisted(checkJTI string) bool {

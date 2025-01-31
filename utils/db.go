@@ -27,7 +27,7 @@ func createDBHandler() (*dbHandler, error) {
 	db_name := os.Getenv("DB_NAME")
 	db_passwd := os.Getenv("DB_PASSWORD")
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s", db_host, db_user, db_passwd, db_name)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s client_encoding=UTF8", db_host, db_user, db_passwd, db_name)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {

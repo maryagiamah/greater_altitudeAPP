@@ -13,4 +13,7 @@ type Report struct {
 	Content    string    `gorm:"type:text;not null" json:"content"`
 	Date       time.Time `gorm:"not null" json:"date"`
 	Attachment string    `gorm:"type:text" json:"attachment"`
+
+	Pupil  Pupil  `gorm:"foreignKey:PupilID;constraint:OnDelete:CASCADE;" json:"pupil"`
+	Teacher Staff `gorm:"foreignKey:TeacherID;constraint:OnDelete:CASCADE;" json:"teacher"`
 }

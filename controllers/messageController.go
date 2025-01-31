@@ -11,11 +11,10 @@ import (
 type MessageController struct{}
 
 func (m *MessageController) GetInboxMessages(c *gin.Context) {
-	id := c.Param("id")
 	userId := c.GetUint("userId")
 	var messages []models.Message
 
-	if id == "" {
+	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}
@@ -28,11 +27,10 @@ func (m *MessageController) GetInboxMessages(c *gin.Context) {
 }
 
 func (m *MessageController) GetSentMessages(c *gin.Context) {
-	id := c.Param("id")
 	userId := c.GetUint("userId")
 	var messages []models.Message
 
-	if id == "" {
+	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
 		return
 	}

@@ -14,11 +14,6 @@ func (m *MessageController) GetInboxMessages(c *gin.Context) {
 	userId := c.GetUint("userId")
 	var messages []models.Message
 
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
-		return
-	}
-
 	if err := utils.H.DB.Where("receiver_id = ?", userId).Find(&messages).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Failed to fetch messages"})
 		return
@@ -29,11 +24,6 @@ func (m *MessageController) GetInboxMessages(c *gin.Context) {
 func (m *MessageController) GetSentMessages(c *gin.Context) {
 	userId := c.GetUint("userId")
 	var messages []models.Message
-
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "ID cannot be empty"})
-		return
-	}
 
 	if err := utils.H.DB.Where("receiver_id = ?", userId).Find(&messages).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch messages"})

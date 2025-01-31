@@ -97,7 +97,7 @@ func (e *EventController) UpdateEvent(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"ID":      event.ID,
 		"message": "Event updated",
 	})

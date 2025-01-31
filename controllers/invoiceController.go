@@ -154,7 +154,7 @@ func (i *InvoiceController) MakePayment(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add payment to invoice"})
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Payment succesfully added to invoice"})
+	c.JSON(http.StatusOK, gin.H{"message": "Payment succesfully added to invoice"})
 }
 
 func (i *InvoiceController) GetInvoicePayments(c *gin.Context) {

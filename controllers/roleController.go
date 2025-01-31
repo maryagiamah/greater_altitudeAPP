@@ -97,7 +97,10 @@ func (r *RoleController) UpdateRole(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"ID": role.ID})
+	c.JSON(http.StatusOK, gin.H{
+		"ID": role.ID,
+		"message": "Role updated",
+	})
 }
 
 func (r *RoleController) DeleteRole(c *gin.Context) {

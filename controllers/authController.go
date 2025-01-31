@@ -90,5 +90,5 @@ func (a *AuthController) Logout(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "User logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": "User logged out"})
 }

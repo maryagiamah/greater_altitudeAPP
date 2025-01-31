@@ -29,7 +29,7 @@ func (m *MessageController) GetSentMessages(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch messages"})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"messages": messages})
+	c.JSON(http.StatusOK, gin.H{"messages": messages})
 }
 
 func (m *MessageController) CreateMessage(c *gin.Context) {

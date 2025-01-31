@@ -28,10 +28,7 @@ func (p *ProgramController) GetProgram(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"program": program,
-		"message": "Program created",
-	})
+	c.JSON(http.StatusOK, gin.H{"program": program})
 }
 
 func (p *ProgramController) GetAllPrograms(c *gin.Context) {

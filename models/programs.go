@@ -11,8 +11,8 @@ type Program struct {
 	Description *string     `gorm:"size:256" json:"description,omitempty"`
 	StartDate   time.Time   `gorm:"not null" json:"start_date"`
 	EndDate     time.Time   `gorm:"not null" json:"end_date"`
-	Classes     []*Class    `json:"classes"`
-	Activities  []*Activity `json:"activities"`
+	Classes     []*Class    `json:"-"`
+	Activities  []*Activity `json:"-"`
 }
 
 type Activity struct {
